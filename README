@@ -22,8 +22,8 @@ ________________________________________________________________________________
 - [x] scrolling is torture.
 - [x] stop redrawing whole screen on key press.
 - [x] store list somehow.
-- [ ] search
-- [ ] prompts
+- [x] search
+- [x] prompts
 - [x] opener
 - [x] resize
 - [ ] ...
@@ -40,6 +40,7 @@ g - go to top
 G - go to bottom
 q - quit
 : - cd to <input>
+/ - search current directory *<input>*
 
 
 opener
