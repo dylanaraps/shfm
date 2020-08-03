@@ -20,7 +20,15 @@ term_resize() {
     LINES=$1 COLUMNS=$2
 
     # leave gap above statusline
-    max_lines=$((LINES - 2))
+    line_max=$((LINES - 2))
+}
+
+list_print() {
+    printf '\033[2J\033[H'
+
+    for file in *; do
+        printf '%s\n' "$file"
+    done
 }
 
 key_handle() {
@@ -55,6 +63,7 @@ key_handle() {
 }
 
 redraw() {
+    list_print
     status_line
 }
 
