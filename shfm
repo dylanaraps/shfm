@@ -109,6 +109,7 @@ main() {
     set -e
 
     esc_char=$(printf '\033')
+    bs_char=$(printf '\177')
 
     cd "${1:-"$PWD"}"
     set -- *
@@ -166,7 +167,7 @@ main() {
                 esac
             ;;
 
-            l?|C2) # ARROW RIGHT
+            l?|C2|"$esc") # ARROW RIGHT
                 if cd "$cur"; then
                     set -- *
                     y=1 y2=1
@@ -179,7 +180,7 @@ main() {
                 redraw "$@"
             ;;
 
-            h?|D2) # ARROW LEFT
+            h?|D2|"$bs_char"?) # ARROW LEFT
                 old_pwd=$PWD
 
                 case $search in
@@ -217,10 +218,35 @@ main() {
                 prompt / r
 
                 set -- *"$ans"*
-
                 y=1 y2=1 cur=$1 search=1
                 redraw "$@"
                 status_line "search: $ans ($y/$#)"
+            ;;
+
+            -?)
+                cd "$OLDPWD" >/dev/null 2>&1|| continue
+
+                set -- *
+                y=1 y2=1 cur=$1
+                redraw "$@"
+            ;;
+
+            \~?)
+                cd || continue
+
+                set -- *
+                y=1 y2=1 cur=$1
+                redraw "$@"
+            ;;
+
+            \!?)
+                export SHFM_LEVEL
+                SHFM_LEVEL=$((SHFM_LEVEL + 1))
+
+                term_reset
+                "${SHELL:=/bin/sh}"
+                term_setup
+                redraw "$@"
             ;;
 
             q?)
