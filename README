@@ -42,10 +42,10 @@ q - quit
 opener
 ________________________________________________________________________________
 
-opening files in different applications (based on mime-type or file extension)
+Opening files in different applications (based on mime-type or file extension)
 can be achieved via an environment variable (SHFM_OPENER) set to the location of
-a small external script. The default for all files will be '$EDITOR' (and if
-that is unset, 'vi').
+a small external script. If unset, the default for all files is '$EDITOR' (and
+if that is unset, 'vi').
 
 The script receives a single argument, the full path to the selected file.
 The opener script is also useful on the command-line. The environment variable
