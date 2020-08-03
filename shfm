@@ -1,7 +1,5 @@
 #!/bin/sh -e
 
-# term_ {{{
-
 term_setup() {
     stty -icanon -echo
 
@@ -21,53 +19,28 @@ term_resize() {
 
     LINES=$1 COLUMNS=$2
 
-    max_lines=$((LINES - 4))
-}
-
-# }}}
-
-# key_ {{{
-
-key_read() {
-    dd ibs=1 count=1 2>/dev/null
+    # leave gap above statusline
+    max_lines=$((LINES - 2))
 }
 
 key_handle() {
     case $key$esc in
         k?|A2) # ARROW UP
-            : "$((y_abs = y_abs - 1 < 0 ? 0 : y_abs - 1))"
         ;;
 
         j?|B2) # ARROW DOWN
-            : "$((y_abs = y_abs + 1 >= dirc ? y_abs : y_abs + 1))"
         ;;
 
         l?|C2) # ARROW RIGHT
-            if cd "$cur"; then
-                y_abs=0
-                y_rel=0
-            else
-                term_reset
-                "${EDITOR:-vi}" "$cur"
-                term_setup
-            fi
         ;;
 
         h?|D2) # ARROW LEFT
-            cd ..
-
-            y_abs=0
-            y_rel=0
-            dirc=0
         ;;
 
         g?)
-            y_abs=0
-            y_rel=0
         ;;
 
         G?)
-            y_abs=$dirc
         ;;
 
         q?)
@@ -81,52 +54,8 @@ key_handle() {
     esac
 }
 
-# }}}
-
-# dir_ {{{
-
-dir_print() {
-    printf '\033[2J\033[H'
-
-    set -- *;
-
-    dirc=$#
-    i=0
-
-    if [ "$y_abs" -eq "$max_lines" ]; then
-        y_rel=$((max_lines))
-
-    elif [ "$y_abs" -gt "$max_lines" ]; then
-        shift "$((y_abs - max_lines))"
-
-    else
-        y_rel=$y_abs
-    fi
-
-    while [ "$i" -le "$max_lines" ]; do
-        case $i in
-            "$y_rel")
-                printf '\033[31;7m%s\033[m\n' "$1"
-                cur=$1
-            ;;
-
-            *)
-                printf '%s\n' "$1"
-            ;;
-        esac
-
-        shift 1;
-        i=$((i + 1));
-
-        [ "$1" ] || break;
-    done
-}
-
-# }}}
-
 redraw() {
-    dir_print
-    status_line "$y_rel/$y_abs"
+    status_line
 }
 
 status_line() {
@@ -138,11 +67,6 @@ main() {
     # change directory to the first argument
     cd "${1:-"$PWD"}"
 
-    # todo: code should handle unset vars
-    y_abs=0
-    y_rel=0
-    dirc=0
-
     term_resize
     term_setup
     redraw
@@ -150,7 +74,7 @@ main() {
     trap 'term_reset'  EXIT INT
     trap 'term_resize; redraw' WINCH
 
-    while key=$(key_read); do
+    while key=$(dd ibs=1 count=1 2>/dev/null); do
         key_handle "$key"
         redraw
     done
