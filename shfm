@@ -35,8 +35,6 @@ list_print() {
         i=$((i + 1))
     done
 
-    line_max=$i
-
     printf '\033[%sH' "$y"
 }
 
@@ -52,7 +50,7 @@ redraw() {
 
 status_line() {
     printf '\0337\033[%sH\033[31;7m%-*s\033[m\0338' \
-        "$LINES" "$COLUMNS" "${1:-$PWD ($y $y2 $line_max $bottom)}"
+        "$LINES" "$COLUMNS" "${1:-$PWD ($y $y2 $# $bottom)}"
 }
 
 print_line() {
@@ -105,7 +103,7 @@ main() {
             ;;
 
             j?|B2) # ARROW DOWN
-                [ "$y" -lt "$line_max" ] && {
+                [ "$y" -lt "$#" ] && {
                     y=$((y + 1))
                     y2=$((y2 + 1 < bottom ? y2 + 1 : bottom))
 
@@ -134,6 +132,18 @@ main() {
                 cd .. || continue
                 set -- *
                 list_reset
+                redraw "$@"
+            ;;
+
+            g?)
+                list_reset
+                redraw "$@"
+            ;;
+
+            # broken
+            G?)
+                y=$#
+                y2=$bottom
                 redraw "$@"
             ;;
 
