@@ -168,7 +168,7 @@ main() {
             ;;
 
             g?)
-                list_reset
+                y=1 y2=1
                 redraw "$@"
             ;;
 
