@@ -27,7 +27,15 @@ list_print() {
     printf '\033[2J\033[H'
 
     i=1
+    j=1
     end=$((bottom + 1))
+
+    for file do
+        [ "${PWD%%/}/$file" = "$OLDPWD" ] &&
+            y=$j y2=$((j > bottom ? bottom : j))
+
+        j=$((j + 1))
+    done
 
     [ "$y" -gt "$bottom" ] &&
         shift "$((y - bottom))"
