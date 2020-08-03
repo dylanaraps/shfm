@@ -10,7 +10,7 @@ term_setup() {
 term_reset() {
     stty icanon echo
 
-    printf '\033[?7h\033[?25h\e[2J\033[;r\033[?1049l'
+    printf '\033[?7h\033[?25h\033[2J\033[;r\033[?1049l'
 }
 
 term_resize() {
@@ -132,11 +132,11 @@ main() {
 
                         case $y2 in
                             1)
-                                printf '\e[L'
+                                printf '\033[L'
                             ;;
 
                             *)
-                                printf '\e[A'
+                                printf '\033[A'
                                 y2=$((y2 > 1 ? y2 - 1 : 1))
                             ;;
                         esac
@@ -168,7 +168,9 @@ main() {
                     set -- *
                     y=1 y2=1
                 else
+                    printf '\033[?25h'
                     "${SHFM_OPENER:="${EDITOR:=vi}"}" "$cur"
+                    printf '\033[?25l'
                 fi
 
                 redraw "$@"
