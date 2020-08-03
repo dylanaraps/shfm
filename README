@@ -39,6 +39,7 @@ h - go up level
 g - go to top
 G - go to bottom
 q - quit
+: - cd to <input>
 
 
 opener

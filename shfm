@@ -74,6 +74,21 @@ status_line() {
         "$LINES" "$COLUMNS" "$1"
 }
 
+prompt() {
+    printf '\0337\033[%sH%s' "$LINES" "$1"
+
+    case $2 in
+        r)
+            stty icanon echo
+            read -r ans ||:
+            stty -icanon -echo
+        ;;
+    esac
+
+    printf '\0338'
+    status_line "$PWD ($y/$#)"
+}
+
 print_line() {
     offset=$1
 
@@ -172,10 +187,19 @@ main() {
                 redraw "$@"
             ;;
 
-            # broken
             G?)
                 y=$#
                 y2=$(($# < bottom ? $# : bottom))
+                redraw "$@"
+            ;;
+
+            :?)
+                prompt "cd: " r
+
+                cd "${ans:="$0"}" >/dev/null 2>&1|| continue
+
+                set -- *
+                y=1 y2=1
                 redraw "$@"
             ;;
 
