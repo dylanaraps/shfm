@@ -27,7 +27,6 @@ list_print() {
     printf '\033[2J\033[H\033[31;7m'
 
     i=0
-    line_max=$((bottom > $# ? bottom : $#))
 
     for file do
         [ "$i" -lt "$bottom" ] &&
