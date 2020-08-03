@@ -57,6 +57,8 @@ print_line() {
 }
 
 main() {
+    esc_char=$(printf '\033')
+
     # change directory to the first argument
     cd "${1:-"$PWD"}"
 
