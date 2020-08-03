@@ -9,9 +9,6 @@ note: likely very broken
 features
 ________________________________________________________________________________
 
-* draws in the most inefficient fashion possible. whole screen updates every key
-  press. language choice limits us GREATLY here (no arrays).
-
 * really nice escape sequence handling for keys which emit '\033[<stuff>'. Not
   based on read timeouts. Based on tracking position within sequences.
 
@@ -20,15 +17,13 @@ ________________________________________________________________________________
 
 * movement uses vim-like keybinds (hjkl).
 
-* causes a myriad of terminal emulators to choke (for the moment).
-
 
 todo
 ________________________________________________________________________________
 
-- [ ] scrolling is torture.
-- [ ] stop redrawing whole screen on key press.
-- [ ] store list somehow.
+- [x] scrolling is torture.
+- [x] stop redrawing whole screen on key press.
+- [x] store list somehow.
 - [ ] search
 - [ ] prompts
 - [ ] opener
@@ -42,6 +37,4 @@ j - down
 k - up
 l - open file or directory
 h - go up level
-g - top
-G - bottom
 q - quit
