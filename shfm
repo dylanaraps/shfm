@@ -18,14 +18,20 @@ term_resize() {
     set +f -- $(stty size)
 
     LINES=$1 COLUMNS=$2
-
-    # leave gap above statusline
-    line_max=$((LINES - 2))
 }
 
 list_print() {
     printf '\033[2J\033[H\033[31;7m'
-    printf '%s\033[m\n' "$@"
+
+    i=0
+    line_max=$((LINES - 3 < $# ? LINES - 3 : $#))
+
+    while [ "$i" != "$line_max" ]; do
+        printf '%s\033[m\n' "$1"
+        shift 1
+        i=$((i + 1))
+    done
+
     printf '\033[%sH' "$y"
 }
 
@@ -99,7 +105,7 @@ main() {
                         printf '\n'
                         print_line "$y" "$@"
 
-                        status_line "HELLO $y / $end"
+                        status_line
                     ;;
                 esac
             ;;
