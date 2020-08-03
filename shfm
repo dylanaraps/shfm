@@ -75,7 +75,7 @@ status_line() {
 }
 
 prompt() {
-    printf '\0337\033[%sH%s' "$LINES" "$1"
+    printf '\0337\033[%sH%s\033[?25h' "$LINES" "$1"
 
     case $2 in
         r)
@@ -85,7 +85,7 @@ prompt() {
         ;;
     esac
 
-    printf '\0338'
+    printf '\0338\033[?25l'
     status_line "$PWD ($y/$#)"
 }
 
@@ -212,6 +212,7 @@ main() {
                 prompt / r
 
                 set -- *"$ans"*
+
                 y=1 y2=1 cur=$1 search=1
                 redraw "$@"
                 status_line "search: $ans ($y/$#)"
