@@ -5,3 +5,25 @@ wip file manager written in posix shell
 
 note: likely very broken
 
+
+features
+________________________________________________________________________________
+
+* draws in the most inefficient fashion possible. whole screen updates every key
+  press. language choice limits us GREATLY here (no arrays).
+
+* really nice escape sequence handling for keys which emit '\033[<stuff>'. Not
+  based on read timeouts. Based on tracking position within sequences.
+
+* has no dependencies other than a POSIX shell and POSIX coreutils (for printf,
+  [, etc if not builtin).
+
+
+todo
+________________________________________________________________________________
+
+- [ ] scrolling is torture.
+- [ ] search
+- [ ] prompts
+- [ ] opener
+- [ ] resize (POSIX shell winch is not asynchronous during read + SIGWINCH?)
