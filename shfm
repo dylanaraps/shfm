@@ -176,14 +176,19 @@ main() {
 
             h?|D2) # ARROW LEFT
                 old_pwd=$PWD
-                cd .. || continue
+
+                case $search in
+                    1) search=0 ;;
+                    *) cd .. || continue ;;
+                esac
+
                 set -- *
-                y=1 y2=1 hist=1
+                y=1 y2=1 cur=$1 hist=1
                 redraw "$@"
             ;;
 
             g?)
-                y=1 y2=1
+                y=1 y2=1 cur=$1
                 redraw "$@"
             ;;
 
@@ -199,8 +204,17 @@ main() {
                 cd "${ans:="$0"}" >/dev/null 2>&1|| continue
 
                 set -- *
-                y=1 y2=1
+                y=1 y2=1 cur=$1
                 redraw "$@"
+            ;;
+
+            /?)
+                prompt / r
+
+                set -- *"$ans"*
+                y=1 y2=1 cur=$1 search=1
+                redraw "$@"
+                status_line "search: $ans ($y/$#)"
             ;;
 
             q?)
