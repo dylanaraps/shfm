@@ -29,6 +29,9 @@ list_print() {
     i=1
     end=$((bottom + 1))
 
+    [ "$y" -gt "$bottom" ] &&
+        shift "$((y - bottom))"
+
     for file do
         [ "$i" = "$y2" ] &&
             printf '\033[31;7m'
@@ -39,7 +42,7 @@ list_print() {
         i=$((i + 1))
     done
 
-    printf '\033[%sH' "$y"
+    printf '\033[%sH' "$((y > bottom ? bottom : y))"
 }
 
 list_reset() {
@@ -102,7 +105,7 @@ main() {
                     fi
 
                     print_line "$y" "$@"
-                    status_line "$PWD (y:$y y2:$y2 #:$# bot:$bottom"
+                    status_line
                 }
             ;;
 
@@ -115,7 +118,7 @@ main() {
                     printf '\n'
                     print_line "$y" "$@"
 
-                    status_line "$PWD (y:$y y2:$y2 #:$# bot:$bottom"
+                    status_line
                 }
             ;;
 
