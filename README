@@ -20,6 +20,8 @@ ________________________________________________________________________________
 
 * movement uses vim-like keybinds (hjkl).
 
+* causes a myriad of terminal emulators to choke (for the moment).
+
 
 todo
 ________________________________________________________________________________
