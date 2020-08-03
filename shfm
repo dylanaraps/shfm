@@ -18,17 +18,21 @@ term_resize() {
     set +f -- $(stty size)
 
     LINES=$1 COLUMNS=$2
+
+    # space for status_line
+    bottom=$((LINES - 2))
 }
 
 list_print() {
     printf '\033[2J\033[H\033[31;7m'
 
     i=0
-    line_max=$((LINES - 3 > $# ? LINES - 3 : $#))
+    line_max=$((bottom > $# ? bottom : $#))
 
     for file do
-        [ "$i" != "$line_max" ] || break;
-        printf '%s\033[m\n' "$file"
+        [ "$i" -lt "$bottom" ] &&
+            printf '%s\033[m\033[B\r' "$file"
+
         i=$((i + 1))
     done
 
@@ -49,7 +53,7 @@ redraw() {
 
 status_line() {
     printf '\0337\033[%sH\033[31;7m%-*s\033[m\0338' \
-        "$LINES" "$COLUMNS" "${1:-$PWD ($y)}"
+        "$LINES" "$COLUMNS" "${1:-$PWD ($y $y2 $line_max $bottom)}"
 }
 
 print_line() {
@@ -89,11 +93,11 @@ main() {
 
                     print_line "$((y + 1))" "$@"
 
-                    if [ "$y2" -eq 0 ]; then
+                    if [ "$y2" -eq 1 ]; then
                         printf '\e[L'
                     else
                         printf '\e[A'
-                        y2=$((y2 > 1 ? y2 - 1 : 0))
+                        y2=$((y2 > 1 ? y2 - 1 : 1))
                     fi
 
                     print_line "$y" "$@"
@@ -104,7 +108,7 @@ main() {
             j?|B2) # ARROW DOWN
                 [ "$y" -lt "$line_max" ] && {
                     y=$((y + 1))
-                    y2=$((y2 + 1 < LINES - 3 ? y2 + 1 : LINES - 3))
+                    y2=$((y2 + 1 < bottom ? y2 + 1 : bottom))
 
                     print_line "$((y - 1))" "$@"
                     printf '\n'
@@ -118,10 +122,13 @@ main() {
                 if cd "$cur"; then
                     set -- *
                     list_reset
-                    redraw "$@"
                 else
+                    term_reset
                     "${EDITOR:=vi}" "$1"
+                    term_setup
                 fi
+
+                redraw "$@"
             ;;
 
             h?|D2) # ARROW LEFT
