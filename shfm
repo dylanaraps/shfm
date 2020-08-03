@@ -23,19 +23,27 @@ term_resize() {
     bottom=$((LINES - 2))
 }
 
+hist_search() {
+    hist=
+    j=1
+
+    for file do
+        [ "${PWD%%/}/$file" = "$old_pwd" ] && {
+            y=$j y2=$((j > bottom ? bottom : j))
+        }
+
+        j=$((j + 1))
+    done
+}
+
 list_print() {
     printf '\033[2J\033[H'
 
     i=1
-    j=1
     end=$((bottom + 1))
 
-    for file do
-        [ "${PWD%%/}/$file" = "$OLDPWD" ] &&
-            y=$j y2=$((j > bottom ? bottom : j))
-
-        j=$((j + 1))
-    done
+    [ "$hist" ] &&
+        hist_search "$@"
 
     [ "$y" -gt "$bottom" ] &&
         shift "$((y - bottom))"
@@ -54,18 +62,17 @@ list_print() {
 }
 
 list_reset() {
-    y=1
-    y2=1
+    y=1 y2=1
 }
 
 redraw() {
     list_print "$@"
-    status_line
+    status_line "$PWD ($y/$#)"
 }
 
 status_line() {
     printf '\0337\033[%sH\033[31;7m%-*s\033[m\0338' \
-        "$LINES" "$COLUMNS" "${1:-$PWD (y:$y y2:$y2 #:$# bot:$bottom)}"
+        "$LINES" "$COLUMNS" "$1"
 }
 
 print_line() {
@@ -113,7 +120,8 @@ main() {
                     fi
 
                     print_line "$y" "$@"
-                    status_line
+
+                    status_line "$PWD ($y/$#)"
                 }
             ;;
 
@@ -126,7 +134,7 @@ main() {
                     printf '\n'
                     print_line "$y" "$@"
 
-                    status_line
+                    status_line "$PWD ($y/$#)"
                 }
             ;;
 
@@ -144,9 +152,11 @@ main() {
             ;;
 
             h?|D2) # ARROW LEFT
+                old_pwd=$PWD
                 cd .. || continue
                 set -- *
                 list_reset
+                hist=1
                 redraw "$@"
             ;;
 
