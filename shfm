@@ -56,6 +56,8 @@ main() {
     # change directory to the first argument
     cd "${1:-"$PWD"}"
 
+    esc_char=$(printf '\033')
+
     set -- *
     max=$#
 
@@ -105,9 +107,9 @@ main() {
             ;;
 
             # handle keys which emit escape sequences
-            ''*) esc=1 ;;
-             '[1') esc=2 ;;
-                *) esc=0 ;;
+            "$esc_char"*) esc=1 ;;
+                    '[1') esc=2 ;;
+                       *) esc=0 ;;
         esac
     done
 }
