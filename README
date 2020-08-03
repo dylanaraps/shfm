@@ -27,6 +27,8 @@ todo
 ________________________________________________________________________________
 
 - [ ] scrolling is torture.
+- [ ] stop redrawing whole screen on key press.
+- [ ] store list somehow.
 - [ ] search
 - [ ] prompts
 - [ ] opener
