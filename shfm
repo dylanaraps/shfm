@@ -39,6 +39,7 @@ list_print() {
 
 list_reset() {
     y=1
+    y2=1
 }
 
 redraw() {
@@ -57,7 +58,7 @@ print_line() {
     [ "$offset" != "$y" ] ||
         printf '\033[31;7m'
 
-    shift "$1"
+    shift "$offset"
     printf '\033[K%s\033[m\r' "$1"
 
     [ "$offset" != "$y" ] ||
@@ -83,24 +84,33 @@ main() {
     while key=$(dd ibs=1 count=1 2>/dev/null); do
         case $key${esc:=0} in
             k?|A2) # ARROW UP
-                y=$((y = y - 1 == 0 ? 1 : y - 1))
+                [ "$y" -gt 1 ] && {
+                    y=$((y - 1))
 
-                print_line "$((y + 1))" "$@"
-                printf '\033[A'
-                print_line "$y" "$@"
+                    print_line "$((y + 1))" "$@"
 
-                status_line
+                    if [ "$y2" -eq 0 ]; then
+                        printf '\e[L'
+                    else
+                        printf '\e[A'
+                        y2=$((y2 > 1 ? y2 - 1 : 0))
+                    fi
+
+                    print_line "$y" "$@"
+                    status_line
+                }
             ;;
 
             j?|B2) # ARROW DOWN
-                [ "$y" -ge "$line_max" ] || {
+                [ "$y" -lt "$line_max" ] && {
                     y=$((y + 1))
+                    y2=$((y2 + 1 < LINES - 3 ? y2 + 1 : LINES - 3))
 
                     print_line "$((y - 1))" "$@"
                     printf '\n'
                     print_line "$y" "$@"
 
-                    status_line "$line_max"
+                    status_line
                 }
             ;;
 
