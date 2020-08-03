@@ -1,16 +1,12 @@
 #!/bin/sh -e
 
+# term_ {{{
+
 term_setup() {
-    # -icanon: enable single byte input (no block till \n)
-    # -echo:   disable echoing pressed keys
     stty -icanon -echo
 
-    # todo comment
-    printf '\033[?1049h\033[?7l\033[?25l\033[2J\033[1;%sr' "$((LINES - 2))"
-
-    y_abs=0
-    y_rel=0
-    dirc=0
+    printf '\033[?1049h\033[?7l\033[?25l\033[2J\033[1;%sr' \
+        "$((LINES - 2))"
 }
 
 term_reset() {
@@ -27,6 +23,10 @@ term_resize() {
 
     max_lines=$((LINES - 4))
 }
+
+# }}}
+
+# key_ {{{
 
 key_read() {
     dd ibs=1 count=1 2>/dev/null
@@ -47,7 +47,9 @@ key_handle() {
                 y_abs=0
                 y_rel=0
             else
+                term_reset
                 "${EDITOR:-vi}" "$cur"
+                term_setup
             fi
         ;;
 
@@ -78,6 +80,10 @@ key_handle() {
             *) esc=0 ;;
     esac
 }
+
+# }}}
+
+# dir_ {{{
 
 dir_print() {
     printf '\033[2J\033[H'
@@ -116,6 +122,8 @@ dir_print() {
     done
 }
 
+# }}}
+
 redraw() {
     dir_print
     status_line "$y_rel/$y_abs"
@@ -129,6 +137,11 @@ status_line() {
 main() {
     # change directory to the first argument
     cd "${1:-"$PWD"}"
+
+    # todo: code should handle unset vars
+    y_abs=0
+    y_rel=0
+    dirc=0
 
     term_resize
     term_setup
