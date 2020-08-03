@@ -7,12 +7,13 @@ wip file manager written in posix shell
 features
 ________________________________________________________________________________
 
-* really nice escape sequence handling for keys which emit '\033[<stuff>'. Not
-  based on read timeouts. Based on tracking position within sequences.
+* Really nice escape sequence handling for keys which emit '\033[<stuff>'. Not
+  based on shitty read timeouts (can't do 'em anyway). Instead based on tracking
+  position within escape sequences.
 
 * no dependencies other than a POSIX shell and POSIX (printf, dd, [ and stty)
 
-* movement uses vim-like keybinds (hjkl).
+* tiny?
 
 
 todo
@@ -25,6 +26,7 @@ ________________________________________________________________________________
 - [ ] prompts
 - [x] opener
 - [x] resize
+- [ ] ...
 
 
 keybinds
