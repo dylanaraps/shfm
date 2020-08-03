@@ -48,7 +48,10 @@ a small external script. The default for all files will be '$EDITOR' (and if
 that is unset, 'vi').
 
 The script receives a single argument, the full path to the selected file.
-The opener script is also useful on the command-line.
+The opener script is also useful on the command-line. The environment variable
+is set as follows.
+
+    export SHFM_OPENER=/path/to/script
 
 Example scripts:
 
