@@ -1,6 +1,7 @@
 #!/bin/sh
 
 term_setup() {
+    stty=$(stty -g)
     stty -icanon -echo
 
     printf '\033[?1049h\033[?7l\033[?25l\033[2J\033[1;%sr' \
@@ -8,7 +9,7 @@ term_setup() {
 }
 
 term_reset() {
-    stty icanon echo
+    stty "$stty"
 
     printf '\033[?7h\033[?25h\033[2J\033[;r\033[?1049l'
 }
