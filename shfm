@@ -24,12 +24,12 @@ term_resize() {
 }
 
 hist_search() {
-    hist=
-    j=1
+    hist=0 j=1
 
     for file do
-        [ "${PWD%%/}/$file" = "$old_pwd" ] &&
-            y=$j y2=$((j > bottom ? bottom : j))
+        case ${PWD%%/}/$file in
+            "$old_pwd") y=$j y2=$((j > bottom ? bottom : j))
+        esac
 
         j=$((j + 1))
     done
@@ -41,18 +41,22 @@ list_print() {
     i=1
     end=$((bottom + 1))
 
-    [ "$hist" ] &&
-        hist_search "$@"
+    case $hist in
+        1) hist_search "$@"
+    esac
 
-    [ "$y" -gt "$bottom" ] &&
-        shift "$((y - bottom))"
+    case $((y - bottom)) in
+        [0-9]*) shift "$((y - bottom))"
+    esac
 
     for file do
-        [ "$i" = "$y2" ] &&
-            printf '\033[31;7m'
+        case $i in
+            "$y2") printf '\033[31;7m'
+        esac
 
-        [ "$i" -lt "$end" ] &&
-            printf '%s\033[m\033[B\r' "$file"
+        case $((i - end)) in
+            -*) printf '%s\033[m\033[B\r' "$file"
+        esac
 
         i=$((i + 1))
     done
@@ -73,64 +77,75 @@ status_line() {
 print_line() {
     offset=$1
 
-    [ "$offset" != "$y" ] ||
-        printf '\033[31;7m'
+    case $offset in
+        "$y") printf '\033[31;7m'
+    esac
 
     shift "$offset"
     printf '\033[K%s\033[m\r' "$1"
 
-    [ "$offset" != "$y" ] ||
-        cur=$1
+    case $offset in
+        "$y") cur=$1
+    esac
 }
 
 main() {
     esc_char=$(printf '\033')
 
-    # change directory to the first argument
     cd "${1:-"$PWD"}"
-
     set -- *
 
     term_resize
     term_setup
-    y=1 y2=1
-    redraw "$@"
 
     trap 'term_reset'  EXIT INT
     trap 'term_resize; term_setup; y=1 y2=1; redraw "$@"' WINCH
 
+    y=1 y2=1
+    redraw "$@"
+
     while key=$(dd ibs=1 count=1 2>/dev/null); do
         case $key${esc:=0} in
             k?|A2) # ARROW UP
-                [ "$y" -gt 1 ] && {
-                    y=$((y - 1))
+                case $y in
+                    -*|0|1) ;;
 
-                    print_line "$((y + 1))" "$@"
+                    *)
+                        y=$((y - 1))
 
-                    if [ "$y2" -eq 1 ]; then
-                        printf '\e[L'
-                    else
-                        printf '\e[A'
-                        y2=$((y2 > 1 ? y2 - 1 : 1))
-                    fi
+                        print_line "$((y + 1))" "$@"
 
-                    print_line "$y" "$@"
+                        case $y2 in
+                            1)
+                                printf '\e[L'
+                            ;;
 
-                    status_line "$PWD ($y/$#)"
-                }
+                            *)
+                                printf '\e[A'
+                                y2=$((y2 > 1 ? y2 - 1 : 1))
+                            ;;
+                        esac
+
+                        print_line "$y" "$@"
+
+                        status_line "$PWD ($y/$#)"
+                    ;;
+                esac
             ;;
 
             j?|B2) # ARROW DOWN
-                [ "$y" -lt "$#" ] && {
-                    y=$((y + 1))
-                    y2=$((y2 + 1 < bottom ? y2 + 1 : bottom))
+                case $((y - $#)) in
+                    -*)
+                        y=$((y + 1))
+                        y2=$((y2 + 1 < bottom ? y2 + 1 : bottom))
 
-                    print_line "$((y - 1))" "$@"
-                    printf '\n'
-                    print_line "$y" "$@"
+                        print_line "$((y - 1))" "$@"
+                        printf '\n'
+                        print_line "$y" "$@"
 
-                    status_line "$PWD ($y/$#)"
-                }
+                        status_line "$PWD ($y/$#)"
+                    ;;
+                esac
             ;;
 
             l?|C2) # ARROW RIGHT

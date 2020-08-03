@@ -11,7 +11,7 @@ ________________________________________________________________________________
   based on shitty read timeouts (can't do 'em anyway). Instead based on tracking
   position within escape sequences.
 
-* no dependencies other than a POSIX shell and POSIX (printf, dd, [ and stty)
+* no dependencies other than a POSIX shell and POSIX (just printf, dd and stty)
 
 * tiny?
 
