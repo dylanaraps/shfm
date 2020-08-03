@@ -91,21 +91,15 @@ main() {
             ;;
 
             j?|B2) # ARROW DOWN
-                case $y in
-                    "$line_max")
-                        y=$line_max
-                    ;;
+                [ "$y" -ge "$line_max" ] || {
+                    y=$((y + 1))
 
-                    *)
-                        y=$((y + 1))
+                    print_line "$((y - 1))" "$@"
+                    printf '\n'
+                    print_line "$y" "$@"
 
-                        print_line "$((y - 1))" "$@"
-                        printf '\n'
-                        print_line "$y" "$@"
-
-                        status_line
-                    ;;
-                esac
+                    status_line "$line_max"
+                }
             ;;
 
             l?|C2) # ARROW RIGHT
