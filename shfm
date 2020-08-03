@@ -25,12 +25,12 @@ term_resize() {
 
 list_print() {
     printf '\033[2J\033[H\033[31;7m'
-
-    for file do
-        printf '%s\033[m\n' "$file"
-    done
-
+    printf '%s\033[m\n' "$@"
     printf '\033[%sH' "$y"
+}
+
+list_reset() {
+    y=1
 }
 
 redraw() {
@@ -40,37 +40,40 @@ redraw() {
 
 status_line() {
     printf '\0337\033[%sH\033[31;7m%-*s\033[m\0338' \
-        "$LINES" "$COLUMNS" "${1:-$PWD (${y:=0}/$max)}"
+        "$LINES" "$COLUMNS" "${1:-$PWD ($y)}"
 }
 
 print_line() {
-    [ "$1" != "${y:=0}" ] || {
-        printf '\033[31;7m'
-    }
+    offset=$1
 
-    shift "$(($1 + 1))"
+    [ "$offset" != "$y" ] ||
+        printf '\033[31;7m'
+
+    shift "$1"
     printf '\033[K%s\033[m\r' "$1"
+
+    [ "$offset" != "$y" ] ||
+        cur=$1
 }
 
 main() {
     # change directory to the first argument
     cd "${1:-"$PWD"}"
 
-    esc_char=$(printf '\033')
-
     set -- *
 
     term_resize
     term_setup
+    list_reset
     redraw "$@"
 
     trap 'term_reset'  EXIT INT
     trap 'term_resize' WINCH
 
     while key=$(dd ibs=1 count=1 2>/dev/null); do
-        case $key$esc in
+        case $key${esc:=0} in
             k?|A2) # ARROW UP
-                y=$((y - 1 < 0 ? 0 : y - 1))
+                y=$((y = y - 1 == 0 ? 1 : y - 1))
 
                 print_line "$((y + 1))" "$@"
                 printf '\033[A'
@@ -80,28 +83,40 @@ main() {
             ;;
 
             j?|B2) # ARROW DOWN
-                y=$((y + 1 > $# - 1 ? $# - 1 : y + 1))
+                end=$(($# < line_max ? $# : line_max))
 
-                print_line "$((y - 1))" "$@"
-                printf '\n'
-                print_line "$y" "$@"
+                case $y in
+                    "$end")
+                        y=$end
+                    ;;
 
-                status_line
+                    *)
+                        y=$((y + 1))
+
+                        print_line "$((y - 1))" "$@"
+                        printf '\n'
+                        print_line "$y" "$@"
+
+                        status_line "HELLO $y / $end"
+                    ;;
+                esac
             ;;
 
             l?|C2) # ARROW RIGHT
+                if cd "$cur"; then
+                    set -- *
+                    list_reset
+                    redraw "$@"
+                else
+                    "${EDITOR:=vi}" "$1"
+                fi
             ;;
 
             h?|D2) # ARROW LEFT
-                cd ..
+                cd .. || continue
                 set -- *
+                list_reset
                 redraw "$@"
-            ;;
-
-            g?)
-            ;;
-
-            G?)
             ;;
 
             q?)
