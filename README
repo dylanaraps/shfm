@@ -29,3 +29,15 @@ ________________________________________________________________________________
 - [ ] prompts
 - [ ] opener
 - [ ] resize (POSIX shell winch is not asynchronous during read + SIGWINCH?)
+
+
+keybinds
+________________________________________________________________________________
+
+j - down
+k - up
+l - open file or directory
+h - go up level
+g - top
+G - bottom
+q - quit
