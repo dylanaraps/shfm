@@ -1,0 +1,146 @@
+#!/bin/sh -e
+
+term_setup() {
+    # -icanon: enable single byte input (no block till \n)
+    # -echo:   disable echoing pressed keys
+    stty -icanon -echo
+
+    # todo comment
+    printf '\033[?1049h\033[?7l\033[?25l\033[2J\033[1;%sr' "$((LINES - 2))"
+
+    y_abs=0
+    y_rel=0
+    dirc=0
+}
+
+term_reset() {
+    stty icanon echo
+
+    printf '\033[?7h\033[?25h\e[2J\033[;r\033[?1049l'
+}
+
+term_resize() {
+    set -f
+    set +f -- $(stty size)
+
+    LINES=$1 COLUMNS=$2
+
+    max_lines=$((LINES - 4))
+}
+
+key_read() {
+    dd ibs=1 count=1 2>/dev/null
+}
+
+key_handle() {
+    case $key$esc in
+        k?|A2) # ARROW UP
+            : "$((y_abs = y_abs - 1 < 0 ? 0 : y_abs - 1))"
+        ;;
+
+        j?|B2) # ARROW DOWN
+            : "$((y_abs = y_abs + 1 >= dirc ? y_abs : y_abs + 1))"
+        ;;
+
+        l?|C2) # ARROW RIGHT
+            if cd "$cur"; then
+                y_abs=0
+                y_rel=0
+            else
+                "${EDITOR:-vi}" "$cur"
+            fi
+        ;;
+
+        h?|D2) # ARROW LEFT
+            cd ..
+
+            y_abs=0
+            y_rel=0
+            dirc=0
+        ;;
+
+        g?)
+            y_abs=0
+            y_rel=0
+        ;;
+
+        G?)
+            y_abs=$dirc
+        ;;
+
+        q?)
+            exit 0
+        ;;
+
+        # handle keys which emit escape sequences
+        ''*) esc=1 ;;
+         '[1') esc=2 ;;
+            *) esc=0 ;;
+    esac
+}
+
+dir_print() {
+    printf '\033[2J\033[H'
+
+    set -- *;
+
+    dirc=$#
+    i=0
+
+    if [ "$y_abs" -eq "$max_lines" ]; then
+        y_rel=$((max_lines))
+
+    elif [ "$y_abs" -gt "$max_lines" ]; then
+        shift "$((y_abs - max_lines))"
+
+    else
+        y_rel=$y_abs
+    fi
+
+    while [ "$i" -le "$max_lines" ]; do
+        case $i in
+            "$y_rel")
+                printf '\033[31;7m%s\033[m\n' "$1"
+                cur=$1
+            ;;
+
+            *)
+                printf '%s\n' "$1"
+            ;;
+        esac
+
+        shift 1;
+        i=$((i + 1));
+
+        [ "$1" ] || break;
+    done
+}
+
+redraw() {
+    dir_print
+    status_line "$y_rel/$y_abs"
+}
+
+status_line() {
+    printf '\0337\033[%sH\033[31;7m%-*s\033[m\0338' \
+        "$LINES" "$COLUMNS" "${1:-$PWD}"
+}
+
+main() {
+    # change directory to the first argument
+    cd "${1:-"$PWD"}"
+
+    term_resize
+    term_setup
+    redraw
+
+    trap 'term_reset'  EXIT INT
+    trap 'term_resize; redraw' WINCH
+
+    while key=$(key_read); do
+        key_handle "$key"
+        redraw
+    done
+}
+
+main "$@"
