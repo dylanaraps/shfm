@@ -18,6 +18,8 @@ ________________________________________________________________________________
 * has no dependencies other than a POSIX shell and POSIX coreutils (for printf,
   [, etc if not builtin).
 
+* movement uses vim-like keybinds (hjkl).
+
 
 todo
 ________________________________________________________________________________
