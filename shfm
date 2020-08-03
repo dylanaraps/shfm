@@ -91,11 +91,9 @@ main() {
             ;;
 
             j?|B2) # ARROW DOWN
-                end=$(($# < line_max ? $# : line_max))
-
                 case $y in
-                    "$end")
-                        y=$end
+                    "$line_max")
+                        y=$line_max
                     ;;
 
                     *)
