@@ -1,4 +1,4 @@
-#!/bin/sh -e
+#!/bin/sh
 
 term_setup() {
     stty -icanon -echo
@@ -105,6 +105,8 @@ print_line() {
 }
 
 main() {
+    set -e
+
     esc_char=$(printf '\033')
 
     cd "${1:-"$PWD"}"
