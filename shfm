@@ -24,12 +24,16 @@ term_resize() {
 }
 
 list_print() {
-    printf '\033[2J\033[H\033[31;7m'
+    printf '\033[2J\033[H'
 
-    i=0
+    i=1
+    end=$((bottom + 1))
 
     for file do
-        [ "$i" -lt "$bottom" ] &&
+        [ "$i" = "$y2" ] &&
+            printf '\033[31;7m'
+
+        [ "$i" -lt "$end" ] &&
             printf '%s\033[m\033[B\r' "$file"
 
         i=$((i + 1))
@@ -50,7 +54,7 @@ redraw() {
 
 status_line() {
     printf '\0337\033[%sH\033[31;7m%-*s\033[m\0338' \
-        "$LINES" "$COLUMNS" "${1:-$PWD ($y $y2 $# $bottom)}"
+        "$LINES" "$COLUMNS" "${1:-$PWD (y:$y y2:$y2 #:$# bot:$bottom)}"
 }
 
 print_line() {
@@ -98,7 +102,7 @@ main() {
                     fi
 
                     print_line "$y" "$@"
-                    status_line
+                    status_line "$PWD (y:$y y2:$y2 #:$# bot:$bottom"
                 }
             ;;
 
@@ -111,7 +115,7 @@ main() {
                     printf '\n'
                     print_line "$y" "$@"
 
-                    status_line
+                    status_line "$PWD (y:$y y2:$y2 #:$# bot:$bottom"
                 }
             ;;
 
@@ -143,7 +147,7 @@ main() {
             # broken
             G?)
                 y=$#
-                y2=$bottom
+                y2=$(($# < bottom ? $# : bottom))
                 redraw "$@"
             ;;
 
