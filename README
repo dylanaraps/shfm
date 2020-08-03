@@ -7,9 +7,10 @@ wip file manager written in posix shell
 features
 ________________________________________________________________________________
 
-* no dependencies other than a POSIX shell and POSIX (just printf, dd and stty)
-
-* tiny?
+* no dependencies other than a POSIX shell + POSIX printf, dd and stty
+* tiny
+* single file
+* no compilation needed
 
 
 keybinds
