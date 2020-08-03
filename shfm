@@ -24,13 +24,15 @@ list_print() {
     printf '\033[2J\033[H\033[31;7m'
 
     i=0
-    line_max=$((LINES - 3 < $# ? LINES - 3 : $#))
+    line_max=$((LINES - 3 > $# ? LINES - 3 : $#))
 
-    while [ "$i" != "$line_max" ]; do
-        printf '%s\033[m\n' "$1"
-        shift 1
+    for file do
+        [ "$i" != "$line_max" ] || break;
+        printf '%s\033[m\n' "$file"
         i=$((i + 1))
     done
+
+    line_max=$i
 
     printf '\033[%sH' "$y"
 }
