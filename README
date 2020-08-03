@@ -37,4 +37,6 @@ j - down
 k - up
 l - open file or directory
 h - go up level
+g - go to top
+G - go to bottom
 q - quit

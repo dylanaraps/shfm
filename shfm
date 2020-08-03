@@ -75,6 +75,20 @@ status_line() {
         "$LINES" "$COLUMNS" "$1"
 }
 
+open_ext() {
+    # todo envar whatever
+    case $1 in
+        *.mp3|*.mp4|*.mkv|*.webm|*.flac|\
+        *.jpg|*.png|*.gif|*.jpeg|*.jpe)
+            mpv "$1"
+        ;;
+
+        *)
+            "${EDITOR:=vi}" "$1"
+        ;;
+    esac
+}
+
 print_line() {
     offset=$1
 
@@ -102,7 +116,7 @@ main() {
     redraw "$@"
 
     trap 'term_reset'  EXIT INT
-    trap 'term_resize' WINCH
+    trap 'term_resize; term_setup; list_reset; redraw "$@"' WINCH
 
     while key=$(dd ibs=1 count=1 2>/dev/null); do
         case $key${esc:=0} in
@@ -144,7 +158,7 @@ main() {
                     list_reset
                 else
                     term_reset
-                    "${EDITOR:=vi}" "$1"
+                    open_ext "$cur"
                     term_setup
                 fi
 
