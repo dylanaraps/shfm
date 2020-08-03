@@ -28,9 +28,8 @@ hist_search() {
     j=1
 
     for file do
-        [ "${PWD%%/}/$file" = "$old_pwd" ] && {
+        [ "${PWD%%/}/$file" = "$old_pwd" ] &&
             y=$j y2=$((j > bottom ? bottom : j))
-        }
 
         j=$((j + 1))
     done
@@ -61,10 +60,6 @@ list_print() {
     printf '\033[%sH' "$((y > bottom ? bottom : y))"
 }
 
-list_reset() {
-    y=1 y2=1
-}
-
 redraw() {
     list_print "$@"
     status_line "$PWD ($y/$#)"
@@ -73,20 +68,6 @@ redraw() {
 status_line() {
     printf '\0337\033[%sH\033[31;7m%-*s\033[m\0338' \
         "$LINES" "$COLUMNS" "$1"
-}
-
-open_ext() {
-    # todo envar whatever
-    case $1 in
-        *.mp3|*.mp4|*.mkv|*.webm|*.flac|\
-        *.jpg|*.png|*.gif|*.jpeg|*.jpe)
-            mpv "$1"
-        ;;
-
-        *)
-            "${EDITOR:=vi}" "$1"
-        ;;
-    esac
 }
 
 print_line() {
@@ -112,11 +93,11 @@ main() {
 
     term_resize
     term_setup
-    list_reset
+    y=1 y2=1
     redraw "$@"
 
     trap 'term_reset'  EXIT INT
-    trap 'term_resize; term_setup; list_reset; redraw "$@"' WINCH
+    trap 'term_resize; term_setup; y=1 y2=1; redraw "$@"' WINCH
 
     while key=$(dd ibs=1 count=1 2>/dev/null); do
         case $key${esc:=0} in
@@ -155,11 +136,9 @@ main() {
             l?|C2) # ARROW RIGHT
                 if cd "$cur"; then
                     set -- *
-                    list_reset
+                    y=1 y2=1
                 else
-                    term_reset
-                    open_ext "$cur"
-                    term_setup
+                    "${SHFM_OPENER:="${EDITOR:=vi}"}" "$cur"
                 fi
 
                 redraw "$@"
@@ -169,8 +148,7 @@ main() {
                 old_pwd=$PWD
                 cd .. || continue
                 set -- *
-                list_reset
-                hist=1
+                y=1 y2=1 hist=1
                 redraw "$@"
             ;;
 

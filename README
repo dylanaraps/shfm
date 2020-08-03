@@ -12,8 +12,7 @@ ________________________________________________________________________________
 * really nice escape sequence handling for keys which emit '\033[<stuff>'. Not
   based on read timeouts. Based on tracking position within sequences.
 
-* has no dependencies other than a POSIX shell and POSIX coreutils (for printf,
-  [, etc if not builtin).
+* no dependencies other than a POSIX shell and POSIX (printf, dd, [ and stty)
 
 * movement uses vim-like keybinds (hjkl).
 
@@ -26,8 +25,8 @@ ________________________________________________________________________________
 - [x] store list somehow.
 - [ ] search
 - [ ] prompts
-- [ ] opener
-- [ ] resize (POSIX shell winch is not asynchronous during read + SIGWINCH?)
+- [x] opener
+- [x] resize
 
 
 keybinds
@@ -40,3 +39,77 @@ h - go up level
 g - go to top
 G - go to bottom
 q - quit
+
+
+opener
+________________________________________________________________________________
+
+opening files in different applications (based on mime-type or file extension)
+can be achieved via an environment variable (SHFM_OPENER) set to the location of
+a small external script. The default for all files will be '$EDITOR' (and if
+that is unset, 'vi').
+
+The script receives a single argument, the full path to the selected file.
+The opener script is also useful on the command-line.
+
+Example scripts:
+
+    #!/bin/sh -e
+    #
+    # open file in application based on file extension
+
+    case $1 in
+        *.mp3|*.flac|*.wav)
+            mpv --no-video "$1"
+        ;;
+
+        *.mp4|*.mkv|*.webm)
+            mpv "$1"
+        ;;
+
+        *.png|*.gif||*.jpg|*.jpe|*.jpeg)
+            gimp "$1"
+        ;;
+
+        *.html|*.pdf)
+            firefox "$1"
+        ;;
+
+        # all other files
+        *)
+            "${EDITOR:=vi}" "$1"
+        ;;
+    esac
+
+
+    #!/bin/sh -e
+    #
+    # open file in application based on mime-type
+
+    mime_type=$(file -bi)
+
+    case $mime_type in
+        audio/*)
+           mpv --no-video "$1"
+        ;;
+
+        video/*)
+            mpv "$1"
+        ;;
+
+        image/*)
+            gimp "$1"
+        ;;
+
+        text/html*|application/pdf*)
+            firefox "$1"
+        ;;
+
+        text/*|)
+            "${EDITOR:=vi}" "$1"
+        ;;
+
+        *)
+            printf 'unknown mime-type %s\n' "$mime_type"
+        ;;
+    esac
