@@ -31,6 +31,14 @@ q - quit
 . - toggle hidden files
 
 
+todo
+________________________________________________________________________________
+
+- [ ] sanitize filenames for display.
+- [ ] fix buggy focus after exit from inline editor.
+- [ ] maybe file operations
+
+
 opener
 ________________________________________________________________________________
 
@@ -106,3 +114,5 @@ Example scripts:
             printf 'unknown mime-type %s\n' "$mime_type"
         ;;
     esac
+
+
