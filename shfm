@@ -24,68 +24,91 @@ term_resize() {
 }
 
 list_print() {
-    printf '\033[2J\033[H'
+    printf '\033[2J\033[H\033[31;7m'
 
-    for file in *; do
-        printf '%s\n' "$file"
+    for file do
+        printf '%s\033[m\n' "$file"
     done
-}
 
-key_handle() {
-    case $key$esc in
-        k?|A2) # ARROW UP
-        ;;
-
-        j?|B2) # ARROW DOWN
-        ;;
-
-        l?|C2) # ARROW RIGHT
-        ;;
-
-        h?|D2) # ARROW LEFT
-        ;;
-
-        g?)
-        ;;
-
-        G?)
-        ;;
-
-        q?)
-            exit 0
-        ;;
-
-        # handle keys which emit escape sequences
-        ''*) esc=1 ;;
-         '[1') esc=2 ;;
-            *) esc=0 ;;
-    esac
+    printf '\033[%sH' "$y"
 }
 
 redraw() {
-    list_print
+    list_print "$@"
     status_line
 }
 
 status_line() {
     printf '\0337\033[%sH\033[31;7m%-*s\033[m\0338' \
-        "$LINES" "$COLUMNS" "${1:-$PWD}"
+        "$LINES" "$COLUMNS" "${1:-$PWD (${y:=0}/$max)}"
+}
+
+print_line() {
+    [ "$1" != "${y:=0}" ] || {
+        printf '\033[31;7m'
+    }
+
+    shift "$(($1 + 1))"
+    printf '\033[K%s\033[m\r' "$1"
 }
 
 main() {
     # change directory to the first argument
     cd "${1:-"$PWD"}"
 
+    set -- *
+    max=$#
+
     term_resize
     term_setup
-    redraw
+    redraw "$@"
 
     trap 'term_reset'  EXIT INT
-    trap 'term_resize; redraw' WINCH
+    trap 'term_resize' WINCH
 
     while key=$(dd ibs=1 count=1 2>/dev/null); do
-        key_handle "$key"
-        redraw
+        case $key$esc in
+            k?|A2) # ARROW UP
+                y=$((y - 1 < 0 ? 0 : y - 1))
+
+                print_line "$((y + 1))" "$@"
+                printf '\033[A'
+                print_line "$y" "$@"
+
+                status_line
+            ;;
+
+            j?|B2) # ARROW DOWN
+                y=$((y + 1 > max - 1 ? max - 1 : y + 1))
+
+                print_line "$((y - 1))" "$@"
+                printf '\n'
+                print_line "$y" "$@"
+
+                status_line
+            ;;
+
+            l?|C2) # ARROW RIGHT
+            ;;
+
+            h?|D2) # ARROW LEFT
+            ;;
+
+            g?)
+            ;;
+
+            G?)
+            ;;
+
+            q?)
+                exit 0
+            ;;
+
+            # handle keys which emit escape sequences
+            ''*) esc=1 ;;
+             '[1') esc=2 ;;
+                *) esc=0 ;;
+        esac
     done
 }
 
