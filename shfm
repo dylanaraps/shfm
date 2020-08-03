@@ -67,7 +67,7 @@ list_print() {
 
 redraw() {
     list_print "$@"
-    status_line "$PWD ($y/$#)"
+    status_line "($y/$#) $PWD"
 }
 
 status_line() {
@@ -87,7 +87,7 @@ prompt() {
     esac
 
     printf '\0338\033[?25l'
-    status_line "$PWD ($y/$#)"
+    status_line "($y/$#) $PWD"
 }
 
 print_line() {
@@ -147,7 +147,7 @@ main() {
 
                         print_line "$y" "$@"
 
-                        status_line "$PWD ($y/$#)"
+                        status_line "($y/$#) $PWD"
                     ;;
                 esac
             ;;
@@ -162,7 +162,7 @@ main() {
                         printf '\n'
                         print_line "$y" "$@"
 
-                        status_line "$PWD ($y/$#)"
+                        status_line "($y/$#) $PWD"
                     ;;
                 esac
             ;;
@@ -204,6 +204,23 @@ main() {
                 redraw "$@"
             ;;
 
+            .?)
+                case ${hidden:=1} in
+                    1)
+                        hidden=0
+                        set -- .[!.]*
+                    ;;
+
+                    *)
+                        hidden=1
+                        set -- *
+                    ;;
+                esac
+
+                y=1 y2=1 cur=$1
+                redraw "$@"
+            ;;
+
             :?)
                 prompt "cd: " r
 
@@ -220,7 +237,7 @@ main() {
                 set -- *"$ans"*
                 y=1 y2=1 cur=$1 search=1
                 redraw "$@"
-                status_line "search: $ans ($y/$#)"
+                status_line "($y/$#) search $ans"
             ;;
 
             -?)
