@@ -95,7 +95,7 @@ Example scripts:
             mpv "$1"
         ;;
 
-        *.png|*.gif||*.jpg|*.jpe|*.jpeg)
+        *.png|*.gif|*.jpg|*.jpe|*.jpeg)
             gimp "$1"
         ;;
 
