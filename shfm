@@ -52,6 +52,40 @@ term_resize() {
     bottom=$((LINES - 2))
 }
 
+term_scroll_down() {
+    case $((y - $#)) in
+        -*)
+            y=$((y + 1))
+            y2=$((y2 + 1 < bottom ? y2 + 1 : bottom))
+
+            print_line "$((y - 1))" "$@"
+            printf '\n'
+            print_line "$y" "$@"
+            status_line "($y/$#) $PWD"
+        ;;
+    esac
+}
+
+term_scroll_up() {
+    case $y in
+        -*|0|1) ;;
+
+        *)
+            y=$((y - 1))
+
+            print_line "$((y + 1))" "$@"
+
+            case $y2 in
+                1) esc IL ;;
+                *) esc CUU; y2=$((y2 > 1 ? y2 - 1 : 1))
+            esac
+
+            print_line "$y" "$@"
+            status_line "($y/$#) $PWD"
+        ;;
+    esac
+}
+
 cmd_run() {
     esc screen_alt h
     esc DECTCEM h
@@ -216,38 +250,12 @@ main() {
 
     while key=$(dd ibs=1 count=1 2>/dev/null); do
         case $key${esc:=0} in
-            k?|A2) # ARROW UP
-                case $y in
-                    -*|0|1) ;;
-
-                    *)
-                        y=$((y - 1))
-
-                        print_line "$((y + 1))" "$@"
-
-                        case $y2 in
-                            1) esc IL ;;
-                            *) esc CUU; y2=$((y2 > 1 ? y2 - 1 : 1))
-                        esac
-
-                        print_line "$y" "$@"
-                        status_line "($y/$#) $PWD"
-                    ;;
-                esac
+            k?|A2)
+                term_scroll_up "$@"
             ;;
 
-            j?|B2) # ARROW DOWN
-                case $((y - $#)) in
-                    -*)
-                        y=$((y + 1))
-                        y2=$((y2 + 1 < bottom ? y2 + 1 : bottom))
-
-                        print_line "$((y - 1))" "$@"
-                        printf '\n'
-                        print_line "$y" "$@"
-                        status_line "($y/$#) $PWD"
-                    ;;
-                esac
+            j?|B2)
+                term_scroll_down "$@"
             ;;
 
             l?|C2|"$esc") # ARROW RIGHT
