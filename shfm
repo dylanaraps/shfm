@@ -24,7 +24,6 @@ esc() {
 term_setup() {
     stty=$(stty -g)
     stty -icanon -echo
-
     esc DECAWM l
     esc DECTCEM l
     esc ED2
@@ -36,7 +35,6 @@ term_reset() {
     esc DECTCEM h
     esc ED2
     esc DECSTBM
-
     stty "$stty"
 }
 
@@ -239,7 +237,6 @@ main() {
                         esac
 
                         print_line "$y" "$@"
-
                         status_line "($y/$#) $PWD"
                     ;;
                 esac
@@ -254,7 +251,6 @@ main() {
                         print_line "$((y - 1))" "$@"
                         printf '\n'
                         print_line "$y" "$@"
-
                         status_line "($y/$#) $PWD"
                     ;;
                 esac
@@ -313,9 +309,7 @@ main() {
 
             :?)
                 prompt "cd: " r
-
                 cd "${ans:="$0"}" >/dev/null 2>&1|| continue
-
                 set -- *
                 y=1 y2=1 cur=$1
                 redraw "$@"
@@ -323,7 +317,6 @@ main() {
 
             /?)
                 prompt / r
-
                 set -- *"$ans"*
                 y=1 y2=1 cur=$1 search=1
                 redraw "$@"
@@ -332,7 +325,6 @@ main() {
 
             -?)
                 cd "$OLDPWD" >/dev/null 2>&1|| continue
-
                 set -- *
                 y=1 y2=1 cur=$1
                 redraw "$@"
@@ -340,7 +332,6 @@ main() {
 
             \~?)
                 cd || continue
-
                 set -- *
                 y=1 y2=1 cur=$1
                 redraw "$@"
@@ -349,7 +340,6 @@ main() {
             \!?)
                 export SHFM_LEVEL
                 SHFM_LEVEL=$((SHFM_LEVEL + 1))
-
                 cmd_run "${SHELL:=/bin/sh}"
             ;;
 
