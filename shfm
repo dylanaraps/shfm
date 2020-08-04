@@ -2,26 +2,22 @@
 
 esc() {
     case $1 in
-        # vt100
-        CUD)        printf '%s[%sB'     "$esc_char" "$2"      ;; # cursor down
-        CUP)        printf '%s[%s;%sH'  "$esc_char" "$2" "$3" ;; # cursor home
-        CUU)        printf '%s[%sA'     "$esc_char" "$2"      ;; # cursor up
-        DECAWM)     printf '%s[?7%s'    "$esc_char" "$2"      ;; # line wrap
-        DECRC)      printf '%s8'        "$esc_char"           ;; # cursor restore
-        DECSC)      printf '%s7'        "$esc_char"           ;; # cursor save
-        DECSTBM)    printf '%s[%s;%sr'  "$esc_char" "$2" "$3" ;; # scroll region
-        ED[0-2])    printf '%s[%sJ'     "$esc_char" "${1#ED}" ;; # clear screen
-        EL[0-2])    printf '%s[%sK'     "$esc_char" "${1#EL}" ;; # clear line
-        SGR)        printf '%s[%s;%sm'  "$esc_char" "$2" "$3" ;; # colors
+        # vt100 (IL is vt102)
+        CUD)        printf '%s[%sB'     "$esc_c" "$2"      ;; # cursor down
+        CUP)        printf '%s[%s;%sH'  "$esc_c" "$2" "$3" ;; # cursor home
+        CUU)        printf '%s[%sA'     "$esc_c" "$2"      ;; # cursor up
+        DECAWM)     printf '%s[?7%s'    "$esc_c" "$2"      ;; # line wrap
+        DECRC)      printf '%s8'        "$esc_c"           ;; # cursor restore
+        DECSC)      printf '%s7'        "$esc_c"           ;; # cursor save
+        DECSTBM)    printf '%s[%s;%sr'  "$esc_c" "$2" "$3" ;; # scroll region
+        ED[0-2])    printf '%s[%sJ'     "$esc_c" "${1#ED}" ;; # clear screen
+        EL[0-2])    printf '%s[%sK'     "$esc_c" "${1#EL}" ;; # clear line
+        IL)         printf '%s[%sL'     "$esc_c" "$2"      ;; # insert line
+        SGR)        printf '%s[%s;%sm'  "$esc_c" "$2" "$3" ;; # colors
 
-        # vt102
-        IL)         printf '%s[%sL'     "$esc_char" "$2"      ;; # insert line
-
-        # vt520 (optional)
-        DECTCEM)    printf '%s[?25%s'   "$esc_char" "$2"      ;; # cursor visible
-
-        # xterm (optional)
-        screen_alt) printf '%s[?1049%s' "$esc_char" "$2"      ;; # alternate buf
+        # private (and optional)
+        DECTCEM)    printf '%s[?25%s'   "$esc_c" "$2" ;; # cursor visible (vt520)
+        screen_alt) printf '%s[?1049%s' "$esc_c" "$2" ;; # alternate buf  (xterm)
     esac
 }
 
@@ -202,7 +198,7 @@ main() {
         ;;
     esac
 
-    esc_char=$(printf '\033')
+    esc_c=$(printf '\033')
     bs_char=$(printf '\177')
 
     cd "${1:-"$PWD"}"
@@ -346,7 +342,7 @@ main() {
             ;;
 
             # handle keys which emit escape sequences
-            "$esc_char"*) esc=1 ;;
+            "$esc_c"*) esc=1 ;;
                     '[1') esc=2 ;;
                        *) esc=0 ;;
         esac
