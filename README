@@ -33,6 +33,16 @@ q - quit
 ! - spawn shell
 . - toggle hidden files
 
+Additional keybinds:
+
+down  arrow  - down
+up    arrow  - up
+right arrow  - open file or directory
+left  arrow  - go up level
+
+enter/return - open file or directory
+backspace    - go up level
+
 
 todo
 ________________________________________________________________________________
