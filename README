@@ -37,6 +37,7 @@ ________________________________________________________________________________
 - [ ] sanitize filenames for display.
 - [ ] fix buggy focus after exit from inline editor.
 - [ ] maybe file operations
+- [ ] add / to directories
 
 
 opener
