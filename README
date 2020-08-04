@@ -3,6 +3,8 @@ ________________________________________________________________________________
 
 file manager written in posix shell
 
+screenshot: https://user-images.githubusercontent.com/6799467/89270554-2b40ab00-d644-11ea-9f2b-bdabcba61a09.png
+
 
 features
 ________________________________________________________________________________
@@ -36,8 +38,9 @@ ________________________________________________________________________________
 
 - [ ] sanitize filenames for display.
 - [ ] fix buggy focus after exit from inline editor.
-- [ ] maybe file operations
-- [ ] add / to directories
+- [ ] maybe file operations.
+- [ ] add / to directories.
+- [ ] use clearer variable names.
 
 
 opener
