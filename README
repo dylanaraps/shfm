@@ -42,6 +42,7 @@ ________________________________________________________________________________
 - [ ] maybe file operations.
 - [ ] add / to directories.
 - [ ] use clearer variable names.
+- [ ] unify entry printing.
 
 
 opener
