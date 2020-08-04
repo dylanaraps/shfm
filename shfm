@@ -321,7 +321,7 @@ main() {
 
             /?)
                 prompt / r
-                set -- *"$ans"*
+                set -- "$ans"*
                 y=1 y2=1 cur=$1 search=1
                 redraw "$@"
                 status_line "($y/$#) search $ans"
