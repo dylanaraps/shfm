@@ -9,12 +9,19 @@ screenshot: https://user-images.githubusercontent.com/6799467/89270554-2b40ab00-
 features
 ________________________________________________________________________________
 
-* no dependencies other than a POSIX shell + POSIX printf, dd and stty
+* no dependencies other than a POSIX shell + POSIX printf, dd and stty ***
 * tiny
 * single file
 * no compilation needed
 * correctly handles files with funky names (newlines, etc)
 * works with very small terminal sizes.
+
+*** SIGWINCH and the size parameter to stty are not /yet/ POSIX but will be.
+    - https://austingroupbugs.net/view.php?id=1053
+    - https://austingroupbugs.net/view.php?id=1151
+
+*** Raw escape sequences are used in place of tput. These are strictly VT100
+    sequences minus \033[?1049[lh], \033[?25[lh] and \033[?7[lh] (?)
 
 
 keybinds
@@ -55,6 +62,8 @@ ________________________________________________________________________________
 - [ ] add / to directories.
 - [ ] use clearer variable names.
 - [x] going up directories should center entry.
+- [ ] abstract over sequences.
+- [ ] look into whether tput is feasible.
 
 
 opener
