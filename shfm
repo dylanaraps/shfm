@@ -98,9 +98,7 @@ file_escape() {
     tmp=$1 safe=
 
     # loop over string char by char
-    while :; do
-        c=${tmp%"${tmp#?}"*}
-
+    while c=${tmp%"${tmp#?}"*}; do
         case $c in
             [[:print:]]) safe=$safe$c ;;
             '')          return ;;
@@ -116,11 +114,7 @@ hist_search() {
 
     for file do
         case ${PWD%%/}/$file in
-            "$old_pwd")
-                y=$j
-                y2=$((j > bottom ? mid : j))
-                cur=$file
-            ;;
+            "$old_pwd") y=$j y2=$((j > bottom ? mid : j)) cur=$file
         esac
 
         j=$((j + 1))
@@ -207,11 +201,11 @@ line_print() {
 
     shift "$offset"
 
-    line_format "$1"
-
     case $offset in
         "$y") cur=$1
     esac
+
+    line_format "$1"
 }
 
 line_format() {
