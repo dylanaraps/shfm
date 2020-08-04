@@ -233,3 +233,12 @@ ________________________________________________________________________________
       # Afterwards, the variable 'safe' contains the escaped filename. Using
       # globals here is a must. Printing to the screen and capturing that
       # output is too slow.
+
+
+* SIGWINCH handler isn't executed until key press is made.
+
+  SIGWINCH doesn't seem to execute asynchronously when the script is also
+  waiting for input. This causes resize to require a key press.
+
+  I'm not too bothered by this. It does save me implementing resize logic which
+  is utter torture. :)
