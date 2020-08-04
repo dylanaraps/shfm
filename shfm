@@ -46,7 +46,11 @@ hist_search() {
 
     for file do
         case ${PWD%%/}/$file in
-            "$old_pwd") y=$j y2=$((j > bottom ? bottom : j)) cur=$file
+            "$old_pwd")
+                y=$j
+                y2=$((j > bottom ? bottom/2 : j))
+                cur=$file
+            ;;
         esac
 
         j=$((j + 1))
@@ -60,10 +64,15 @@ list_print() {
     end=$((bottom + 1))
 
     case $hist in
-        1) hist_search "$@"
-    esac
+        1)
+            hist_search "$@"
+            shift "$((y >= bottom ? y - (bottom / 2) : 0))"
+        ;;
 
-    shift "$((y - bottom > 0 ? y - bottom : 0))"
+        *)
+            shift "$((y >= bottom ? y - bottom : 0))"
+        ;;
+    esac
 
     for file do
         file_escape "$file"
@@ -79,7 +88,7 @@ list_print() {
         i=$((i + 1))
     done
 
-    printf '\033[%sH' "$((y > bottom ? bottom : y))"
+    printf '\033[%sH' "$((y > bottom ? y2 : y))"
 }
 
 redraw() {
