@@ -226,14 +226,8 @@ main() {
                         print_line "$((y + 1))" "$@"
 
                         case $y2 in
-                            1)
-                                esc IL
-                            ;;
-
-                            *)
-                                esc CUU
-                                y2=$((y2 > 1 ? y2 - 1 : 1))
-                            ;;
+                            1) esc IL ;;
+                            *) esc CUU; y2=$((y2 > 1 ? y2 - 1 : 1))
                         esac
 
                         print_line "$y" "$@"
