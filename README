@@ -53,6 +53,7 @@ ________________________________________________________________________________
 - [ ] maybe file operations.
 - [ ] add / to directories.
 - [ ] use clearer variable names.
+- [ ] going up directories should center entry.
 
 
 opener
