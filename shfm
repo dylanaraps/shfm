@@ -12,7 +12,7 @@ esc() {
         ED[0-2])    printf '%s[%sJ'     "$esc_char" "${1#ED}" ;;
         EL[0-2])    printf '%s[%sK'     "$esc_char" "${1#EL}" ;;
         SGR)        printf '%s[%s;%sm'  "$esc_char" "$2" "$3" ;;
-        cursorhome) printf '%s[%s;%sH'  "$esc_char" "$2" "$3" ;;
+        CUP)        printf '%s[%s;%sH'  "$esc_char" "$2" "$3" ;;
 
         # private
         IL)         printf '%s[%sL'     "$esc_char" "$2"      ;; # VT102(?)
@@ -97,7 +97,7 @@ hist_search() {
 
 list_print() {
     esc ED2
-    esc cursorhome
+    esc CUP
 
     i=1
     end=$((bottom + 1))
@@ -133,7 +133,7 @@ list_print() {
         i=$((i + 1))
     done
 
-    esc cursorhome "$((y > bottom ? y2 : y))"
+    esc CUP "$((y > bottom ? y2 : y))"
 }
 
 redraw() {
@@ -143,7 +143,7 @@ redraw() {
 
 status_line() {
     esc DECSC
-    esc cursorhome "$LINES"
+    esc CUP "$LINES"
     esc SGR 31 7
     printf '%-*s' "$COLUMNS" "$1"
     esc SGR
@@ -152,7 +152,7 @@ status_line() {
 
 prompt() {
     esc DECSC
-    esc cursorhome "$LINES"
+    esc CUP "$LINES"
     printf %s "$1"
     esc DECTCEM h
     esc EL0
