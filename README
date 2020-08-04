@@ -9,7 +9,7 @@ screenshot: https://user-images.githubusercontent.com/6799467/89270554-2b40ab00-
 features
 ________________________________________________________________________________
 
-* no dependencies other than a POSIX shell + POSIX printf, dd and stty ***
+* no dependencies other than a POSIX shell + POSIX test, printf, dd and stty ***
 * tiny
 * single file
 * no compilation needed
@@ -54,11 +54,10 @@ ________________________________________________________________________________
 - [ ] print directories first (hard).
 - [x] fix buggy focus after exit from inline editor.
 - [ ] maybe file operations.
-- [ ] add / to directories.
-- [ ] use clearer variable names.
+- [x] add / to directories.
 - [x] going up directories should center entry.
-- [ ] abstract over sequences.
-- [ ] look into whether tput is feasible.
+- [x] abstract over sequences.
+- [x] look into whether tput is feasible.
 
 
 opener

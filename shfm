@@ -215,6 +215,7 @@ line_format() {
     file_escape "$1"
     esc EL0
     printf %s "$safe"
+    test -d "$1" && printf /
     esc SGR
     printf '\r'
 }
