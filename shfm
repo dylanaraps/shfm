@@ -89,9 +89,12 @@ term_scroll_up() {
 cmd_run() {
     esc screen_alt h
     esc DECTCEM h
+    esc DECSTBM
     "$@"
+    esc DECSTBM 1 "$((LINES - 2))"
     esc screen_alt l
     esc DECTCEM l
+    esc CUP "$y2"
 }
 
 file_escape() {
