@@ -63,9 +63,7 @@ list_print() {
         1) hist_search "$@"
     esac
 
-    case $((y - bottom)) in
-        [0-9]*) shift "$((y - bottom))"
-    esac
+    shift "$((y - bottom > 0 ? y - bottom : 0))"
 
     for file do
         file_escape "$file"
