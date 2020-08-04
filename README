@@ -229,3 +229,7 @@ ________________________________________________________________________________
               tmp=${tmp#?}
           done
       }
+
+      # Afterwards, the variable 'safe' contains the escaped filename. Using
+      # globals here is a must. Printing to the screen and capturing that
+      # output is too slow.
