@@ -2,19 +2,22 @@
 
 esc() {
     case $1 in
-        CUD)        printf '%s[%sB'     "$esc_char" "$2"      ;; # VT100
-        CUU)        printf '%s[%sA'     "$esc_char" "$2"      ;; # VT100
-        DECAWM)     printf '%s[?7%s'    "$esc_char" "$2"      ;; # VT100
-        DECSC)      printf '%s7'        "$esc_char"           ;; # VT100
-        DECRC)      printf '%s8'        "$esc_char"           ;; # VT100
-        DECSTBM)    printf '%s[%s;%sr'  "$esc_char" "$2" "$3" ;; # VT100
-        DECTCEM)    printf '%s[?25%s'   "$esc_char" "$2"      ;; # VT50X?
-        ED[0-2])    printf '%s[%sJ'     "$esc_char" "${1#ED}" ;; # VT100
-        EL[0-2])    printf '%s[%sK'     "$esc_char" "${1#EL}" ;; # VT100
-        IL)         printf '%s[%sL'     "$esc_char" "$2"      ;; # VT10X?
-        SGR)        printf '%s[%s;%sm'  "$esc_char" "$2" "$3" ;; # VT100
-        cursorhome) printf '%s[%s;%sH'  "$esc_char" "$2" "$3" ;; # VT100
+        # vt100
+        CUD)        printf '%s[%sB'     "$esc_char" "$2"      ;;
+        CUU)        printf '%s[%sA'     "$esc_char" "$2"      ;;
+        DECAWM)     printf '%s[?7%s'    "$esc_char" "$2"      ;;
+        DECSC)      printf '%s7'        "$esc_char"           ;;
+        DECRC)      printf '%s8'        "$esc_char"           ;;
+        DECSTBM)    printf '%s[%s;%sr'  "$esc_char" "$2" "$3" ;;
+        ED[0-2])    printf '%s[%sJ'     "$esc_char" "${1#ED}" ;;
+        EL[0-2])    printf '%s[%sK'     "$esc_char" "${1#EL}" ;;
+        SGR)        printf '%s[%s;%sm'  "$esc_char" "$2" "$3" ;;
+        cursorhome) printf '%s[%s;%sH'  "$esc_char" "$2" "$3" ;;
+
+        # private
+        IL)         printf '%s[%sL'     "$esc_char" "$2"      ;; # VT102(?)
         screen_alt) printf '%s[?1049%s' "$esc_char" "$2"      ;; # xterm
+        DECTCEM)    printf '%s[?25%s'   "$esc_char" "$2"      ;; # VT520(?)
     esac
 }
 
