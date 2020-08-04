@@ -24,7 +24,7 @@ ________________________________________________________________________________
 *** Raw VT100 escape sequences are used in place of tput. A few non-VT100
     sequences /are/ needed however.
 
-    - IL      vt102  \033[L:         controls upwards scroll.
+    - IL      vt102  \033[L:         controls upwards scroll.    (required)
     - ?       xterm  \033[?1049[lh]: controls alternate screen.  (optional)
     - DECTCEM vt520  \033[?25[lh]:   controls cursor visibility. (optional)
 
