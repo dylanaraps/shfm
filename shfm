@@ -29,7 +29,7 @@ hist_search() {
 
     for file do
         case ${PWD%%/}/$file in
-            "$old_pwd") y=$j y2=$((j > bottom ? bottom : j))
+            "$old_pwd") y=$j y2=$((j > bottom ? bottom : j)) cur=$file
         esac
 
         j=$((j + 1))
@@ -76,7 +76,7 @@ status_line() {
 }
 
 prompt() {
-    printf '\0337\033[%sH%s\033[?25h' "$LINES" "$1"
+    printf '\0337\033[%sH%s\033[?25h\033[K' "$LINES" "$1"
 
     case $2 in
         r)
