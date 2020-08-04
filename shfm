@@ -13,10 +13,10 @@ esc() {
         ED[0-2])    printf '%s[%sJ'     "$esc_char" "${1#ED}" ;;
         EL[0-2])    printf '%s[%sK'     "$esc_char" "${1#EL}" ;;
         SGR)        printf '%s[%s;%sm'  "$esc_char" "$2" "$3" ;;
+        IL)         printf '%s[%sL'     "$esc_char" "$2"      ;; # VT102
 
-        # private
-        DECTCEM)    printf '%s[?25%s'   "$esc_char" "$2"      ;; # VT520(?)
-        IL)         printf '%s[%sL'     "$esc_char" "$2"      ;; # VT102(?)
+        # private (optional)
+        DECTCEM)    printf '%s[?25%s'   "$esc_char" "$2"      ;; # VT520
         screen_alt) printf '%s[?1049%s' "$esc_char" "$2"      ;; # xterm
     esac
 }
