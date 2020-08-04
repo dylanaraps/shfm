@@ -58,9 +58,9 @@ term_scroll_down() {
             y=$((y + 1))
             y2=$((y2 + 1 < bottom ? y2 + 1 : bottom))
 
-            print_line "$((y - 1))" "$@"
+            line_print "$((y - 1))" "$@"
             printf '\n'
-            print_line "$y" "$@"
+            line_print "$y" "$@"
             status_line "($y/$#) $PWD"
         ;;
     esac
@@ -73,14 +73,14 @@ term_scroll_up() {
         *)
             y=$((y - 1))
 
-            print_line "$((y + 1))" "$@"
+            line_print "$((y + 1))" "$@"
 
             case $y2 in
                 1) esc IL ;;
                 *) esc CUU; y2=$((y2 > 1 ? y2 - 1 : 1))
             esac
 
-            print_line "$y" "$@"
+            line_print "$y" "$@"
             status_line "($y/$#) $PWD"
         ;;
     esac
@@ -147,18 +147,14 @@ list_print() {
     esac
 
     for file do
-        file_escape "$file"
-
         case $i in
             "$y2") esc SGR 34 7
         esac
 
         case $((i - end)) in
             -*)
-                printf %s "$safe"
-                esc SGR
+                line_format "$file"
                 esc CUD
-                printf '\r'
             ;;
         esac
 
@@ -202,7 +198,7 @@ prompt() {
     status_line "($y/$#) $PWD"
 }
 
-print_line() {
+line_print() {
     offset=$1
 
     case $offset in
@@ -210,16 +206,20 @@ print_line() {
     esac
 
     shift "$offset"
-    file_escape "$1"
 
-    esc EL0
-    printf %s "$safe"
-    esc SGR
-    printf '\r'
+    line_format "$1"
 
     case $offset in
         "$y") cur=$1
     esac
+}
+
+line_format() {
+    file_escape "$1"
+    esc EL0
+    printf %s "$safe"
+    esc SGR
+    printf '\r'
 }
 
 main() {
