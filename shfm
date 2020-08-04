@@ -4,20 +4,20 @@ esc() {
     case $1 in
         # vt100
         CUD)        printf '%s[%sB'     "$esc_char" "$2"      ;;
+        CUP)        printf '%s[%s;%sH'  "$esc_char" "$2" "$3" ;;
         CUU)        printf '%s[%sA'     "$esc_char" "$2"      ;;
         DECAWM)     printf '%s[?7%s'    "$esc_char" "$2"      ;;
-        DECSC)      printf '%s7'        "$esc_char"           ;;
         DECRC)      printf '%s8'        "$esc_char"           ;;
+        DECSC)      printf '%s7'        "$esc_char"           ;;
         DECSTBM)    printf '%s[%s;%sr'  "$esc_char" "$2" "$3" ;;
         ED[0-2])    printf '%s[%sJ'     "$esc_char" "${1#ED}" ;;
         EL[0-2])    printf '%s[%sK'     "$esc_char" "${1#EL}" ;;
         SGR)        printf '%s[%s;%sm'  "$esc_char" "$2" "$3" ;;
-        CUP)        printf '%s[%s;%sH'  "$esc_char" "$2" "$3" ;;
 
         # private
+        DECTCEM)    printf '%s[?25%s'   "$esc_char" "$2"      ;; # VT520(?)
         IL)         printf '%s[%sL'     "$esc_char" "$2"      ;; # VT102(?)
         screen_alt) printf '%s[?1049%s' "$esc_char" "$2"      ;; # xterm
-        DECTCEM)    printf '%s[?25%s'   "$esc_char" "$2"      ;; # VT520(?)
     esac
 }
 
