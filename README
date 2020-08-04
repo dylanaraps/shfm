@@ -48,6 +48,7 @@ todo
 ________________________________________________________________________________
 
 - [x] sanitize filenames for display.
+- [ ] print directories first (hard).
 - [ ] fix buggy focus after exit from inline editor.
 - [ ] maybe file operations.
 - [ ] add / to directories.
