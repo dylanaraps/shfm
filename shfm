@@ -274,6 +274,10 @@ main() {
             ;;
 
             g?)
+                case $y in
+                    1) continue
+                esac
+
                 y=1 y2=1 cur=$1
                 redraw "$@"
             ;;
@@ -343,8 +347,8 @@ main() {
 
             # handle keys which emit escape sequences
             "$esc_c"*) esc=1 ;;
-                    '[1') esc=2 ;;
-                       *) esc=0 ;;
+                 '[1') esc=2 ;;
+                    *) esc=0 ;;
         esac
     done
 }
