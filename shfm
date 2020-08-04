@@ -15,8 +15,12 @@ term_reset() {
 }
 
 term_resize() {
-    set -f
-    set +f -- $(stty size)
+    # false-positive, behavior intentional, globbing is disabled.
+    # shellcheck disable=2046
+    {
+        set -f
+        set +f -- $(stty size)
+    }
 
     LINES=$1 COLUMNS=$2
 
