@@ -13,6 +13,7 @@ ________________________________________________________________________________
 * tiny
 * single file
 * no compilation needed
+* correctly handles files with funky names (newlines, etc)
 
 
 keybinds
