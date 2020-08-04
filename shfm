@@ -9,9 +9,9 @@ term_setup() {
 }
 
 term_reset() {
-    stty "$stty"
-
     printf '\033[?7h\033[?25h\033[2J\033[;r\033[?1049l'
+
+    stty "$stty"
 }
 
 term_resize() {
