@@ -225,7 +225,7 @@ main() {
 
     case $1 in
         -v)
-            printf '%s 0.1\n' "${0##*/}"
+            printf '%s 0.2\n' "${0##*/}"
             exit 0
         ;;
     esac
