@@ -4,12 +4,12 @@ term_setup() {
     stty=$(stty -g)
     stty -icanon -echo
 
-    printf '\033[?1049h\033[?7l\033[?25l\033[2J\033[1;%sr' \
+    printf '\033[?7l\033[?25l\033[2J\033[1;%sr' \
         "$((LINES - 2))"
 }
 
 term_reset() {
-    printf '\033[?7h\033[?25h\033[2J\033[;r\033[?1049l'
+    printf '\033[?7h\033[?25h\033[2J\033[;r'
 
     stty "$stty"
 }
@@ -26,6 +26,12 @@ term_resize() {
 
     # space for status_line
     bottom=$((LINES - 2))
+}
+
+cmd_run() {
+    printf '\033[?1049h\033[?25h'
+    "$@"
+    printf '\033[?25l\033[?1049l'
 }
 
 file_escape() {
@@ -204,13 +210,10 @@ main() {
                 if cd "$cur" >/dev/null 2>&1; then
                     set -- *
                     y=1 y2=1 cur=$1
+                    redraw "$@"
                 else
-                    printf '\033[?25h'
-                    "${SHFM_OPENER:="${EDITOR:=vi}"}" "$cur"
-                    printf '\033[?25l'
+                    cmd_run "${SHFM_OPENER:="${EDITOR:=vi}"}" "$cur"
                 fi
-
-                redraw "$@"
             ;;
 
             h?|D2|"$bs_char"?) # ARROW LEFT
@@ -293,10 +296,7 @@ main() {
                 export SHFM_LEVEL
                 SHFM_LEVEL=$((SHFM_LEVEL + 1))
 
-                term_reset
-                "${SHELL:=/bin/sh}"
-                term_setup
-                redraw "$@"
+                cmd_run "${SHELL:=/bin/sh}"
             ;;
 
             q?)
