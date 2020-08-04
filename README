@@ -117,3 +117,64 @@ Example scripts:
     esac
 
 
+implementation details
+________________________________________________________________________________
+
+* Draws are partial!
+
+  The file manager will only redraw what is necessary. Every line scrolled
+  corresponds to three lines being redrawn. The current line (clear highlight),
+  the destination line (set highlight) and the status line (update location).
+
+
+* POSIX shell has no arrays.
+
+  It does however have an argument list (used for passing command-line arguments
+  to the script and when calling functions).
+
+  Restrictions:
+
+  - Can only have one list at a time (in the same scope).
+  - Can restrict a list's scope but cannot extend it.
+  - Cannot grab element by index.
+
+  Things I'm thankful for:
+
+  - Elements can be "popped" off the front of the list (using shift).
+  - List size is given to us (via $#).
+  - No need to use a string delimited by some character.
+  - Can loop over elements.
+
+
+* Cursor position is tracked manually.
+
+  Grabbing the current cursor position cannot be done reliably from POSIX shell.
+  Instead, the cursor starts at 0,0 and each movement modifies the value of a
+  variable (relative Y position in screen). This variable is how the file
+  manager knows which line of the screen the cursor is on.
+
+
+* Multi-byte input is handled by using a 2D case statement.
+
+  (I don't really know what to call this, suggestions appreciated)
+
+  Rather than using read timeouts (we can't sleep < 1s in POSIX shell anyway)
+  to handle multi-byte input, shfm tracks location within sequences and handles
+  this in a really nice way.
+
+  The case statement matches "$char$esc" with "$esc" being an integer holding
+  position in sequences. To give an example, down arrow emits '\033[B'.
+
+  - When '\033?' is found, the value of 'esc' is set to '1'.
+  - When '[1'    is found, the value of 'esc' is set to '2'.
+  - When 'B2'    is found, we know it's '\033[B' and handle down arrow.
+  - If input doesn't follow this sequence, 'esc' is reset to '0'.
+
+
+* There is no usage of '[' or 'test'.
+
+  Despite these being commonly provided as "shell builtins" (part of the shell),
+  a lot of shells still use the external utilities from the coreutils. All usage
+  of these has been replaced with 'case' as it is always a "shell keyword".
+
+
