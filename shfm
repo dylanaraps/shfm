@@ -3,21 +3,25 @@
 esc() {
     case $1 in
         # vt100
-        CUD)        printf '%s[%sB'     "$esc_char" "$2"      ;;
-        CUP)        printf '%s[%s;%sH'  "$esc_char" "$2" "$3" ;;
-        CUU)        printf '%s[%sA'     "$esc_char" "$2"      ;;
-        DECAWM)     printf '%s[?7%s'    "$esc_char" "$2"      ;;
-        DECRC)      printf '%s8'        "$esc_char"           ;;
-        DECSC)      printf '%s7'        "$esc_char"           ;;
-        DECSTBM)    printf '%s[%s;%sr'  "$esc_char" "$2" "$3" ;;
-        ED[0-2])    printf '%s[%sJ'     "$esc_char" "${1#ED}" ;;
-        EL[0-2])    printf '%s[%sK'     "$esc_char" "${1#EL}" ;;
-        SGR)        printf '%s[%s;%sm'  "$esc_char" "$2" "$3" ;;
-        IL)         printf '%s[%sL'     "$esc_char" "$2"      ;; # VT102
+        CUD)        printf '%s[%sB'     "$esc_char" "$2"      ;; # cursor down
+        CUP)        printf '%s[%s;%sH'  "$esc_char" "$2" "$3" ;; # cursor home
+        CUU)        printf '%s[%sA'     "$esc_char" "$2"      ;; # cursor up
+        DECAWM)     printf '%s[?7%s'    "$esc_char" "$2"      ;; # line wrap
+        DECRC)      printf '%s8'        "$esc_char"           ;; # cursor restore
+        DECSC)      printf '%s7'        "$esc_char"           ;; # cursor save
+        DECSTBM)    printf '%s[%s;%sr'  "$esc_char" "$2" "$3" ;; # scroll region
+        ED[0-2])    printf '%s[%sJ'     "$esc_char" "${1#ED}" ;; # clear screen
+        EL[0-2])    printf '%s[%sK'     "$esc_char" "${1#EL}" ;; # clear line
+        SGR)        printf '%s[%s;%sm'  "$esc_char" "$2" "$3" ;; # colors
 
-        # private (optional)
-        DECTCEM)    printf '%s[?25%s'   "$esc_char" "$2"      ;; # VT520
-        screen_alt) printf '%s[?1049%s' "$esc_char" "$2"      ;; # xterm
+        # vt102
+        IL)         printf '%s[%sL'     "$esc_char" "$2"      ;; # insert line
+
+        # vt520 (optional)
+        DECTCEM)    printf '%s[?25%s'   "$esc_char" "$2"      ;; # cursor visible
+
+        # xterm (optional)
+        screen_alt) printf '%s[?1049%s' "$esc_char" "$2"      ;; # alternate buf
     esac
 }
 
