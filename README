@@ -17,11 +17,16 @@ ________________________________________________________________________________
 * works with very small terminal sizes.
 
 *** SIGWINCH and the size parameter to stty are not /yet/ POSIX but will be.
+
     - https://austingroupbugs.net/view.php?id=1053
     - https://austingroupbugs.net/view.php?id=1151
 
-*** Raw escape sequences are used in place of tput. These are strictly VT100
-    sequences minus \033[?1049[lh], \033[?25[lh] and \033[?7[lh] (?)
+*** Raw VT100 escape sequences are used in place of tput. A few non-VT100
+    sequences /are/ needed however.
+
+    - IL \033[L               controls upwards scroll.
+    - XTERM \033[?1049[lh]:   controls alternate screen  (optional)
+    - DECTCEM (\033[?25[lh]): controls cursor visibility (optional)
 
 
 keybinds

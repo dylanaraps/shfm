@@ -1,15 +1,41 @@
 #!/bin/sh
 
+esc() {
+    case $1 in
+        # vt100
+        CUD)        printf '%s[%sB'     "$esc_char" "$2"      ;;
+        CUU)        printf '%s[%sA'     "$esc_char" "$2"      ;;
+        DECAWM)     printf '%s[?7%s'    "$esc_char" "$2"      ;;
+        DECSC)      printf '%s7'        "$esc_char"           ;;
+        DECRC)      printf '%s8'        "$esc_char"           ;;
+        DECSTBM)    printf '%s[%s;%sr'  "$esc_char" "$2" "$3" ;;
+        ED[0-2])    printf '%s[%sJ'     "$esc_char" "${1#ED}" ;;
+        EL[0-2])    printf '%s[%sK'     "$esc_char" "${1#EL}" ;;
+        SGR)        printf '%s[%s;%sm'  "$esc_char" "$2" "$3" ;;
+        cursorhome) printf '%s[%s;%sH'  "$esc_char" "$2" "$3" ;;
+
+        # private
+        IL)         printf '%s[%sL'     "$esc_char" "$2"      ;; # VT102(?)
+        screen_alt) printf '%s[?1049%s' "$esc_char" "$2"      ;; # xterm
+        DECTCEM)    printf '%s[?25%s'   "$esc_char" "$2"      ;; # VT520(?)
+    esac
+}
+
 term_setup() {
     stty=$(stty -g)
     stty -icanon -echo
 
-    printf '\033[?7l\033[?25l\033[2J\033[1;%sr' \
-        "$((LINES - 2))"
+    esc DECAWM l
+    esc DECTCEM l
+    esc ED2
+    esc DECSTBM 1 "$((LINES - 2))"
 }
 
 term_reset() {
-    printf '\033[?7h\033[?25h\033[2J\033[;r'
+    esc DECAWM h
+    esc DECTCEM h
+    esc ED2
+    esc DECSTBM
 
     stty "$stty"
 }
@@ -29,9 +55,11 @@ term_resize() {
 }
 
 cmd_run() {
-    printf '\033[?1049h\033[?25h'
+    esc screen_alt h
+    esc DECTCEM h
     "$@"
-    printf '\033[?25l\033[?1049l'
+    esc screen_alt l
+    esc DECTCEM l
 }
 
 file_escape() {
@@ -68,7 +96,8 @@ hist_search() {
 }
 
 list_print() {
-    printf '\033[2J\033[H'
+    esc ED2
+    esc cursorhome
 
     i=1
     end=$((bottom + 1))
@@ -89,17 +118,22 @@ list_print() {
         file_escape "$file"
 
         case $i in
-            "$y2") printf '\033[34;7m'
+            "$y2") esc SGR 34 7
         esac
 
         case $((i - end)) in
-            -*) printf '%s\033[m\033[B\r' "$safe"
+            -*)
+                printf %s "$safe"
+                esc SGR
+                esc CUD
+                printf '\r'
+            ;;
         esac
 
         i=$((i + 1))
     done
 
-    printf '\033[%sH' "$((y > bottom ? y2 : y))"
+    esc cursorhome "$((y > bottom ? y2 : y))"
 }
 
 redraw() {
@@ -108,12 +142,20 @@ redraw() {
 }
 
 status_line() {
-    printf '\0337\033[%sH\033[31;7m%-*s\033[m\0338' \
-        "$LINES" "$COLUMNS" "$1"
+    esc DECSC
+    esc cursorhome "$LINES"
+    esc SGR 31 7
+    printf '%-*s' "$COLUMNS" "$1"
+    esc SGR
+    esc DECRC
 }
 
 prompt() {
-    printf '\0337\033[%sH%s\033[?25h\033[K' "$LINES" "$1"
+    esc DECSC
+    esc cursorhome "$LINES"
+    printf %s "$1"
+    esc DECTCEM h
+    esc EL0
 
     case $2 in
         r)
@@ -123,7 +165,8 @@ prompt() {
         ;;
     esac
 
-    printf '\0338\033[?25l'
+    esc DECRC
+    esc DECTCEM l
     status_line "($y/$#) $PWD"
 }
 
@@ -131,12 +174,16 @@ print_line() {
     offset=$1
 
     case $offset in
-        "$y") printf '\033[34;7m'
+        "$y") esc SGR 34 7
     esac
 
     shift "$offset"
     file_escape "$1"
-    printf '\033[K%s\033[m\r' "$safe"
+
+    esc EL0
+    printf %s "$safe"
+    esc SGR
+    printf '\r'
 
     case $offset in
         "$y") cur=$1
@@ -182,11 +229,11 @@ main() {
 
                         case $y2 in
                             1)
-                                printf '\033[L'
+                                esc IL
                             ;;
 
                             *)
-                                printf '\033[A'
+                                esc CUU
                                 y2=$((y2 > 1 ? y2 - 1 : 1))
                             ;;
                         esac
