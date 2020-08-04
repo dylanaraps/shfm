@@ -194,3 +194,36 @@ ________________________________________________________________________________
   of these has been replaced with 'case' as it is always a "shell keyword".
 
 
+* Filename escaping works via looping over a string char by char.
+
+  I didn't think this was possible in POSIX shell until I needed to do this in
+  KISS Linux's package manager and found a way to do so.
+
+  I'll let the code speak for itself (comments added for clarity):
+
+      file_escape() {
+          # store the argument (file name) in a temporary variable.
+          # ensure that 'safe' is empty (we have no access to the local keyword
+          # and can't use local variables without also using a sub-shell). This
+          # variable will contain its prior value (if it has one) otherwise.
+          tmp=$1 safe=
+
+          # loop over string char by char.
+          # this takes the approach of infinite loop + inner break condition as
+          # we have no access to [ (personal restriction).
+          while :; do
+              # Remove everything after the first character.
+              c=${tmp%"${tmp#?}"*}
+
+              # Construct a new string, replacing anything unprintable with '?'.
+              case $c in
+                  [[:print:]]) safe=$safe$c ;;
+                  '')          return ;; # we have nothing more to do, return.
+                  *)           safe=$safe\? ;;
+              esac
+
+              # Remove the first character.
+              # This shifts our position forward.
+              tmp=${tmp#?}
+          done
+      }
