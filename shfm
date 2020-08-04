@@ -263,7 +263,7 @@ main() {
             l?|C2|"$esc") # ARROW RIGHT
                 if cd "$cur" >/dev/null 2>&1; then
                     set -- *
-                    y=1 y2=1 cur=$1
+                    y=1 y2=1 cur=$1 search=0
                     redraw "$@"
                 else
                     cmd_run "${SHFM_OPENER:="${EDITOR:=vi}"}" "$cur"
