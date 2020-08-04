@@ -146,6 +146,13 @@ print_line() {
 main() {
     set -e
 
+    case $1 in
+        -v)
+            printf '%s 0.1\n' "${0##*/}"
+            exit 0
+        ;;
+    esac
+
     esc_char=$(printf '\033')
     bs_char=$(printf '\177')
 
