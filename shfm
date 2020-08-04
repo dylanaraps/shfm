@@ -113,6 +113,7 @@ main() {
 
     cd "${1:-"$PWD"}"
     set -- *
+    cur=$1
 
     term_resize
     term_setup
@@ -168,9 +169,9 @@ main() {
             ;;
 
             l?|C2|"$esc") # ARROW RIGHT
-                if cd "$cur"; then
+                if cd "$cur" >/dev/null 2>&1; then
                     set -- *
-                    y=1 y2=1
+                    y=1 y2=1 cur=$1
                 else
                     printf '\033[?25h'
                     "${SHFM_OPENER:="${EDITOR:=vi}"}" "$cur"
