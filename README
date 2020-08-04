@@ -16,17 +16,7 @@ ________________________________________________________________________________
 * correctly handles files with funky names (newlines, etc)
 * works with very small terminal sizes.
 
-*** SIGWINCH and the size parameter to stty are not /yet/ POSIX but will be.
-
-    - https://austingroupbugs.net/view.php?id=1053
-    - https://austingroupbugs.net/view.php?id=1151
-
-*** VT100 escape sequences (widely available) are used in place of tput. A few
-    non-VT100 sequences /are/ needed however.
-
-    - IL      vt102  \033[L:         controls upwards scroll.    (required)
-    - ?       xterm  \033[?1049[lh]: controls alternate screen.  (optional)
-    - DECTCEM vt520  \033[?25[lh]:   controls cursor visibility. (optional)
+*** see portability notes towards bottom of README.
 
 
 keybinds
@@ -146,6 +136,44 @@ Example scripts:
             printf 'unknown mime-type %s\n' "$mime_type"
         ;;
     esac
+
+
+portability notes
+________________________________________________________________________________
+
+* SIGWINCH and the size parameter to stty are not /yet/ POSIX (but will be).
+
+  - https://austingroupbugs.net/view.php?id=1053
+  - https://austingroupbugs.net/view.php?id=1151
+
+
+* VT100/ANSI escape sequences (widely available) are used in place of tput. A
+  few non-VT100 sequences /are/ needed however.
+
+  - IL      vt102  \033[L:         controls upwards scroll.    (required)
+  - ?       xterm  \033[?1049[lh]: controls alternate screen.  (optional)
+  - DECTCEM vt520  \033[?25[lh]:   controls cursor visibility. (optional)
+
+  Why avoid tput?
+
+  POSIX only specifies three operands for tput; clear, init and reset [0]. We
+  cannot rely on anything additional working across operating systems and tput
+  implementations.
+
+  Further, a tput implementation may use terminfo names (example: setaf) or
+  termcap names (example: AF). We cannot blindly use tput and expect it to
+  work everywhere. [1]
+
+  We could simply follow terminfo and yell at anyone who doesn't though I'm
+  also not too keen on requiring tput as a dependency as not all systems have
+  it. I've found that raw VT100/VT102 sequences work widely.
+
+  Neofetch uses them and supports a wide array of operating systems (Linux,
+  IRIX, AIX, HP-UX, various BSDs, Haiku, MINIX, OpenIndiana, FreeMiNT, etc.
+  YMMV
+
+  [0] https://pubs.opengroup.org/onlinepubs/009695399/utilities/tput.html
+  [1] https://invisible-island.net/ncurses/man/tput.1.html#h2-PORTABILITY
 
 
 implementation details
