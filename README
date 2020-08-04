@@ -193,6 +193,8 @@ ________________________________________________________________________________
   a lot of shells still use the external utilities from the coreutils. All usage
   of these has been replaced with 'case' as it is always a "shell keyword".
 
+  This is one of the approaches taken to reduce the need for anything external.
+
 
 * Filename escaping works via looping over a string char by char.
 
