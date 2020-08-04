@@ -101,7 +101,7 @@ file_escape() {
     tmp=$1 safe=
 
     # loop over string char by char
-    while c=${tmp%"${tmp#?}"*}; do
+    while c=${tmp%"${tmp#?}"}; do
         case $c in
             [[:print:]]) safe=$safe$c ;;
             '')          return ;;
