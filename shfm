@@ -28,11 +28,12 @@ file_escape() {
     tmp=$1 safe=
 
     # loop over string char by char
-    while [ "$tmp" ]; do
+    while :; do
         c=${tmp%"${tmp#?}"*}
 
         case $c in
             [[:print:]]) safe=$safe$c ;;
+            '')          return ;;
             *)           safe=$safe\? ;;
         esac
 
