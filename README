@@ -49,7 +49,7 @@ ________________________________________________________________________________
 
 - [x] sanitize filenames for display.
 - [ ] print directories first (hard).
-- [ ] fix buggy focus after exit from inline editor.
+- [x] fix buggy focus after exit from inline editor.
 - [ ] maybe file operations.
 - [ ] add / to directories.
 - [ ] use clearer variable names.
