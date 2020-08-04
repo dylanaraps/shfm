@@ -36,7 +36,7 @@ q - quit
 todo
 ________________________________________________________________________________
 
-- [ ] sanitize filenames for display.
+- [x] sanitize filenames for display.
 - [ ] fix buggy focus after exit from inline editor.
 - [ ] maybe file operations.
 - [ ] add / to directories.

@@ -24,6 +24,22 @@ term_resize() {
     bottom=$((LINES - 2))
 }
 
+file_escape() {
+    tmp=$1 safe=
+
+    # loop over string char by char
+    while [ "$tmp" ]; do
+        c=${tmp%"${tmp#?}"*}
+
+        case $c in
+            [[:print:]]) safe=$safe$c ;;
+            *)           safe=$safe\? ;;
+        esac
+
+        tmp=${tmp#?}
+    done
+}
+
 hist_search() {
     hist=0 j=1
 
@@ -51,12 +67,14 @@ list_print() {
     esac
 
     for file do
+        file_escape "$file"
+
         case $i in
             "$y2") printf '\033[34;7m'
         esac
 
         case $((i - end)) in
-            -*) printf '%s\033[m\033[B\r' "$file"
+            -*) printf '%s\033[m\033[B\r' "$safe"
         esac
 
         i=$((i + 1))
@@ -98,7 +116,8 @@ print_line() {
     esac
 
     shift "$offset"
-    printf '\033[K%s\033[m\r' "$1"
+    file_escape "$1"
+    printf '\033[K%s\033[m\r' "$safe"
 
     case $offset in
         "$y") cur=$1
