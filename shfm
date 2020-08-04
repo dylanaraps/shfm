@@ -52,7 +52,7 @@ list_print() {
 
     for file do
         case $i in
-            "$y2") printf '\033[31;7m'
+            "$y2") printf '\033[34;7m'
         esac
 
         case $((i - end)) in
@@ -94,7 +94,7 @@ print_line() {
     offset=$1
 
     case $offset in
-        "$y") printf '\033[31;7m'
+        "$y") printf '\033[34;7m'
     esac
 
     shift "$offset"
