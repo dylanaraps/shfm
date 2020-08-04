@@ -21,8 +21,8 @@ ________________________________________________________________________________
     - https://austingroupbugs.net/view.php?id=1053
     - https://austingroupbugs.net/view.php?id=1151
 
-*** Raw VT100 escape sequences are used in place of tput. A few non-VT100
-    sequences /are/ needed however.
+*** VT100 escape sequences (widely available) are used in place of tput. A few
+    non-VT100 sequences /are/ needed however.
 
     - IL      vt102  \033[L:         controls upwards scroll.    (required)
     - ?       xterm  \033[?1049[lh]: controls alternate screen.  (optional)
