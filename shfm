@@ -224,8 +224,13 @@ main() {
     set -e
 
     case $1 in
+        -h)
+            printf 'shfm -[hv]\n'
+            exit 0
+        ;;
+
         -v)
-            printf '%s 0.2\n' "${0##*/}"
+            printf 'shfm 0.3\n'
             exit 0
         ;;
     esac
