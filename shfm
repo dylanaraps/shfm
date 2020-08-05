@@ -224,21 +224,24 @@ main() {
     set -e
 
     case $1 in
-        -h)
+        -h|--help)
             printf 'shfm -[hv]\n'
             exit 0
         ;;
 
-        -v)
+        -v|--version)
             printf 'shfm 0.3\n'
             exit 0
+        ;;
+
+        *)
+            cd -- "${1:-"$PWD"}"
         ;;
     esac
 
     esc_c=$(printf '\033')
     bs_char=$(printf '\177')
 
-    cd "${1:-"$PWD"}"
     set -- *
     cur=$1
 
