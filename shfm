@@ -237,7 +237,7 @@ main() {
 
     case $1 in
         -h|--help)
-            printf 'shfm -[hv]\n'
+            printf 'shfm -[hv] <starting dir>\n'
             exit 0
         ;;
 
