@@ -242,7 +242,7 @@ main() {
         ;;
 
         -v|--version)
-            printf 'shfm 0.3\n'
+            printf 'shfm 0.4\n'
             exit 0
         ;;
 
