@@ -164,9 +164,9 @@ ________________________________________________________________________________
 * VT100/ANSI escape sequences (widely available) are used in place of tput. A
   few non-VT100 sequences /are/ needed however.
 
-  - IL      vt102  \033[L:         controls upwards scroll.    (required)
-  - ?       xterm  \033[?1049[lh]: controls alternate screen.  (optional)
-  - DECTCEM vt520  \033[?25[lh]:   controls cursor visibility. (optional)
+  - IL      vt102  \033[L:         upwards scroll.    (required)
+  -         xterm  \033[?1049[lh]: alternate screen.  (optional)
+  - DECTCEM vt520  \033[?25[lh]:   cursor visibility. (optional)
 
   Why avoid tput?
 
