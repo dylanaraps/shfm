@@ -58,7 +58,7 @@ term_scroll_down() {
             line_print "$((y - 1))" "$@"
             printf '\n'
             line_print "$y" "$@"
-            status_line "($y/$#) $PWD"
+            status_line "$#"
         ;;
     esac
 }
@@ -78,7 +78,7 @@ term_scroll_up() {
             esac
 
             line_print "$y" "$@"
-            status_line "($y/$#) $PWD"
+            status_line "$#"
         ;;
     esac
 }
@@ -160,7 +160,7 @@ list_print() {
 
 redraw() {
     list_print "$@"
-    status_line "($y/$#) $PWD"
+    status_line "$#"
 }
 
 status_line() {
@@ -172,7 +172,15 @@ status_line() {
            *) esc SGR 34 7 ;;
     esac
 
-    printf '%-*s' "$COLUMNS" "$1"
+    printf '%s ' "($y/$1)"
+
+    case $ltype in
+        '') printf %s "$PWD" ;;
+         *) printf %s "$ltype"
+    esac
+
+    printf '%*s' "$COLUMNS" ""
+
     esc SGR
     esc DECRC
 }
@@ -269,7 +277,7 @@ main() {
             l?|C2|"$esc") # ARROW RIGHT
                 if [ -d "$cur" ] && cd "$cur" >/dev/null 2>&1; then
                     set -- *
-                    y=1 y2=1 cur=$1 search=0
+                    y=1 y2=1 cur=$1 ltype=
                     redraw "$@"
 
                 elif [ -e "$cur" ]; then
@@ -280,9 +288,9 @@ main() {
             h?|D2|"$bs_char"?) # ARROW LEFT
                 old_pwd=$PWD
 
-                case $search in
-                    1) search=0 ;;
-                    *) cd .. || continue ;;
+                case $ltype in
+                    '') cd .. || continue ;;
+                     *) ltype= ;;
                 esac
 
                 set -- *
@@ -334,9 +342,9 @@ main() {
             /?)
                 prompt / r
                 set -- "$ans"*
-                y=1 y2=1 cur=$1 search=1
+                y=1 y2=1 cur=$1 ltype="search $PWD/$ans*"
                 redraw "$@"
-                status_line "($y/$#) search $ans"
+                status_line "$#"
             ;;
 
             -?)
@@ -375,9 +383,9 @@ main() {
                        '. - toggle hidden files' \
                        '? - show keybinds'
 
-                y=1 y2=1 cur=$1 search=1
+                y=1 y2=1 cur=$1 ltype=keybinds
                 redraw "$@"
-                status_line "($y/$#) keybinds"
+                status_line "$#"
             ;;
 
             q?)
