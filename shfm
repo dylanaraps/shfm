@@ -3,18 +3,18 @@
 esc() {
     case $1 in
         # vt100 (IL is vt102) (DECTCEM is vt520)
-        CUD)     printf '%s[%sB'     "$esc_c" "$2"      ;; # cursor down
-        CUP)     printf '%s[%s;%sH'  "$esc_c" "$2" "$3" ;; # cursor home
-        CUU)     printf '%s[%sA'     "$esc_c" "$2"      ;; # cursor up
-        DECAWM)  printf '%s[?7%s'    "$esc_c" "$2"      ;; # line wrap
-        DECRC)   printf '%s8'        "$esc_c"           ;; # cursor restore
-        DECSC)   printf '%s7'        "$esc_c"           ;; # cursor save
-        DECSTBM) printf '%s[%s;%sr'  "$esc_c" "$2" "$3" ;; # scroll region
-        DECTCEM) printf '%s[?25%s'   "$esc_c" "$2"      ;; # cursor visible
-        ED[0-2]) printf '%s[%sJ'     "$esc_c" "${1#ED}" ;; # clear screen
-        EL[0-2]) printf '%s[%sK'     "$esc_c" "${1#EL}" ;; # clear line
-        IL)      printf '%s[%sL'     "$esc_c" "$2"      ;; # insert line
-        SGR)     printf '%s[%s;%sm'  "$esc_c" "$2" "$3" ;; # colors
+        CUD)     printf '%s[%sB'    "$esc_c" "$2"      ;; # cursor down
+        CUP)     printf '%s[%s;%sH' "$esc_c" "$2" "$3" ;; # cursor home
+        CUU)     printf '%s[%sA'    "$esc_c" "$2"      ;; # cursor up
+        DECAWM)  printf '%s[?7%s'   "$esc_c" "$2"      ;; # line wrap
+        DECRC)   printf '%s8'       "$esc_c"           ;; # cursor restore
+        DECSC)   printf '%s7'       "$esc_c"           ;; # cursor save
+        DECSTBM) printf '%s[%s;%sr' "$esc_c" "$2" "$3" ;; # scroll region
+        DECTCEM) printf '%s[?25%s'  "$esc_c" "$2"      ;; # cursor visible
+        ED[0-2]) printf '%s[%sJ'    "$esc_c" "${1#ED}" ;; # clear screen
+        EL[0-2]) printf '%s[%sK'    "$esc_c" "${1#EL}" ;; # clear line
+        IL)      printf '%s[%sL'    "$esc_c" "$2"      ;; # insert line
+        SGR)     printf '%s[%s;%sm' "$esc_c" "$2" "$3" ;; # colors
 
         # xterm (since 1988, supported widely)
         screen_alt) printf '%s[?1049%s' "$esc_c" "$2" ;; # alternate buffer
