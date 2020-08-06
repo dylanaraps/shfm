@@ -321,6 +321,14 @@ main() {
 
             :?)
                 prompt "cd: " r
+
+                # false positive, behavior intentional
+                # shellcheck disable=2088
+                case $ans in
+                    '~')   ans=$HOME ;;
+                    '~/'*) ans=$HOME/${ans#"~/"}
+                esac
+
                 cd "${ans:="$0"}" >/dev/null 2>&1|| continue
                 set -- *
                 y=1 y2=1 cur=$1
