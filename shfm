@@ -31,10 +31,10 @@ term_setup() {
 }
 
 term_reset() {
-    esc DECAWM h
+    esc DECAWM h  >&2
     esc DECTCEM h >&2
     esc ED2       >&2
-    esc DECSTBM
+    esc DECSTBM   >&2
     stty "$stty"
 
     # needed for cd-on-exit
@@ -242,7 +242,7 @@ main() {
         ;;
 
         -v|--version)
-            printf 'shfm 0.4\n'
+            printf 'shfm 0.4.1\n'
             exit 0
         ;;
 
@@ -390,9 +390,7 @@ main() {
                 status_line "$#"
             ;;
 
-            q?)
-                exit 0
-            ;;
+            q?) exit 0 ;;
 
             # handle keys which emit escape sequences
             "$esc_c"*) esc=1 ;;

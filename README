@@ -71,7 +71,7 @@ rather flexible.
 For ease of use, a wrapper function can be added to your .shellrc (.bashrc, etc).
 
     shfm() {
-        cd "$(command shfm)"
+        cd "$(command shfm "$@")"
     }
 
 
