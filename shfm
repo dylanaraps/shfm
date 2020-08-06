@@ -51,36 +51,34 @@ term_resize() {
 
 term_scroll_down() {
     case $((y - $#)) in
-        -*)
-            y=$((y + 1))
-            y2=$((y2 + 1 < bottom ? y2 + 1 : bottom))
-
-            line_print "$((y - 1))" "$@"
-            printf '\n'
-            line_print "$y" "$@"
-            status_line "$#"
-        ;;
+        [0-9]*) return
     esac
+
+    y=$((y + 1))
+    y2=$((y2 + 1 < bottom ? y2 + 1 : bottom))
+
+    line_print "$((y - 1))" "$@"
+    printf '\n'
+    line_print "$y" "$@"
+    status_line "$#"
 }
 
 term_scroll_up() {
     case $y in
-        -*|0|1) ;;
-
-        *)
-            y=$((y - 1))
-
-            line_print "$((y + 1))" "$@"
-
-            case $y2 in
-                1) esc IL ;;
-                *) esc CUU; y2=$((y2 > 1 ? y2 - 1 : 1))
-            esac
-
-            line_print "$y" "$@"
-            status_line "$#"
-        ;;
+        -*|0|1) return
     esac
+
+    y=$((y - 1))
+
+    line_print "$((y + 1))" "$@"
+
+    case $y2 in
+        1) esc IL ;;
+        *) esc CUU; y2=$((y2 > 1 ? y2 - 1 : 1))
+    esac
+
+    line_print "$y" "$@"
+    status_line "$#"
 }
 
 cmd_run() {
