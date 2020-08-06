@@ -32,7 +32,7 @@ g - go to top
 G - go to bottom
 q - quit
 : - cd to <input>
-/ - search current directory *<input>*
+/ - search current directory <input>*
 - - go to last directory
 ~ - go home
 ! - spawn shell
