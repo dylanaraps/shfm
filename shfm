@@ -15,6 +15,9 @@ esc() {
         EL[0-2]) printf '%s[%sK'     "$esc_c" "${1#EL}" ;; # clear line
         IL)      printf '%s[%sL'     "$esc_c" "$2"      ;; # insert line
         SGR)     printf '%s[%s;%sm'  "$esc_c" "$2" "$3" ;; # colors
+
+        # xterm (since 1988, supported widely)
+        screen_alt) printf '%s[?1049%s' "$esc_c" "$2" ;; # alternate buffer
     esac
 }
 
