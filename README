@@ -9,7 +9,7 @@ screenshot: https://user-images.githubusercontent.com/6799467/89270554-2b40ab00-
 features
 ________________________________________________________________________________
 
-* no dependencies other than a POSIX shell + POSIX test, printf, dd and stty ***
+* no dependencies other than a POSIX shell + POSIX [, printf, dd and stty ***
 * tiny
 * single file
 * no compilation needed
@@ -35,17 +35,7 @@ q - quit
 ~ - go home
 ! - spawn shell
 . - toggle hidden files
-
-Additional keybinds:
-
-down  arrow  - down
-up    arrow  - up
-right arrow  - open file or directory
-left  arrow  - go up level
-
-enter/return - open file or directory
-backspace    - go up level
-
+? - show help
 
 todo
 ________________________________________________________________________________

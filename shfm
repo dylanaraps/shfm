@@ -2,22 +2,19 @@
 
 esc() {
     case $1 in
-        # vt100 (IL is vt102)
-        CUD)        printf '%s[%sB'     "$esc_c" "$2"      ;; # cursor down
-        CUP)        printf '%s[%s;%sH'  "$esc_c" "$2" "$3" ;; # cursor home
-        CUU)        printf '%s[%sA'     "$esc_c" "$2"      ;; # cursor up
-        DECAWM)     printf '%s[?7%s'    "$esc_c" "$2"      ;; # line wrap
-        DECRC)      printf '%s8'        "$esc_c"           ;; # cursor restore
-        DECSC)      printf '%s7'        "$esc_c"           ;; # cursor save
-        DECSTBM)    printf '%s[%s;%sr'  "$esc_c" "$2" "$3" ;; # scroll region
-        ED[0-2])    printf '%s[%sJ'     "$esc_c" "${1#ED}" ;; # clear screen
-        EL[0-2])    printf '%s[%sK'     "$esc_c" "${1#EL}" ;; # clear line
-        IL)         printf '%s[%sL'     "$esc_c" "$2"      ;; # insert line
-        SGR)        printf '%s[%s;%sm'  "$esc_c" "$2" "$3" ;; # colors
-
-        # private (and optional)
-        DECTCEM)    printf '%s[?25%s'   "$esc_c" "$2" ;; # cursor visible (vt520)
-        screen_alt) printf '%s[?1049%s' "$esc_c" "$2" ;; # alternate buf  (xterm)
+        # vt100 (IL is vt102) (DECTCEM is vt520)
+        CUD)     printf '%s[%sB'     "$esc_c" "$2"      ;; # cursor down
+        CUP)     printf '%s[%s;%sH'  "$esc_c" "$2" "$3" ;; # cursor home
+        CUU)     printf '%s[%sA'     "$esc_c" "$2"      ;; # cursor up
+        DECAWM)  printf '%s[?7%s'    "$esc_c" "$2"      ;; # line wrap
+        DECRC)   printf '%s8'        "$esc_c"           ;; # cursor restore
+        DECSC)   printf '%s7'        "$esc_c"           ;; # cursor save
+        DECSTBM) printf '%s[%s;%sr'  "$esc_c" "$2" "$3" ;; # scroll region
+        DECTCEM) printf '%s[?25%s'   "$esc_c" "$2"      ;; # cursor visible
+        ED[0-2]) printf '%s[%sJ'     "$esc_c" "${1#ED}" ;; # clear screen
+        EL[0-2]) printf '%s[%sK'     "$esc_c" "${1#EL}" ;; # clear line
+        IL)      printf '%s[%sL'     "$esc_c" "$2"      ;; # insert line
+        SGR)     printf '%s[%s;%sm'  "$esc_c" "$2" "$3" ;; # colors
     esac
 }
 
@@ -90,7 +87,7 @@ cmd_run() {
     esc screen_alt h
     esc DECTCEM h
     esc DECSTBM
-    "$@"
+    "$@" ||:
     esc DECSTBM 1 "$((LINES - 2))"
     esc screen_alt l
     esc DECTCEM l
@@ -220,7 +217,7 @@ line_format() {
     file_escape "$1"
     esc EL0
     printf %s "$safe"
-    test -d "$1" && printf /
+    [ -d "$1" ] && printf /
     esc SGR
     printf '\r'
 }
@@ -270,11 +267,12 @@ main() {
             ;;
 
             l?|C2|"$esc") # ARROW RIGHT
-                if cd "$cur" >/dev/null 2>&1; then
+                if [ -d "$cur" ] && cd "$cur" >/dev/null 2>&1; then
                     set -- *
                     y=1 y2=1 cur=$1 search=0
                     redraw "$@"
-                else
+
+                elif [ -e "$cur" ]; then
                     cmd_run "${SHFM_OPENER:="${EDITOR:=vi}"}" "$cur"
                 fi
             ;;
@@ -309,15 +307,8 @@ main() {
 
             .?)
                 case ${hidden:=1} in
-                    1)
-                        hidden=0
-                        set -- .[!.]*
-                    ;;
-
-                    *)
-                        hidden=1
-                        set -- *
-                    ;;
+                    1) hidden=0; set -- .[!.]* ;;
+                    *) hidden=1; set -- *      ;;
                 esac
 
                 y=1 y2=1 cur=$1
@@ -366,6 +357,27 @@ main() {
                 export SHFM_LEVEL
                 SHFM_LEVEL=$((SHFM_LEVEL + 1))
                 cmd_run "${SHELL:=/bin/sh}"
+            ;;
+
+            \??)
+                set -- 'j - down' \
+                       'k - up' \
+                       'l - open file or directory' \
+                       'h - go up level' \
+                       'g - go to top' \
+                       'G - go to bottom' \
+                       'q - quit' \
+                       ': - cd to <input>' \
+                       '/ - search current directory <input>*' \
+                       '- - go to last directory' \
+                       '~ - go home' \
+                       '! - spawn shell' \
+                       '. - toggle hidden files' \
+                       '? - show keybinds'
+
+                y=1 y2=1 cur=$1 search=1
+                redraw "$@"
+                status_line "($y/$#) keybinds"
             ;;
 
             q?)
