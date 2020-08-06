@@ -15,6 +15,8 @@ ________________________________________________________________________________
 * no compilation needed
 * correctly handles files with funky names (newlines, etc)
 * works with very small terminal sizes.
+* cd on exit
+* works when run in subshell $(shfm)
 
 *** see portability notes towards bottom of README.
 
@@ -48,6 +50,29 @@ ________________________________________________________________________________
 - [x] going up directories should center entry.
 - [x] abstract over sequences.
 - [x] look into whether tput is feasible.
+
+
+cd on exit
+________________________________________________________________________________
+
+On exit, the utility will print the path to working directory to <stdout>. To
+disable this behavior, run with 'shfm >/dev/null'. Usage of this output is
+rather flexible.
+
+    # cd to directory on exit
+    cd "$(shfm)"
+
+    # store pwd in var on exit
+    var=$(shfm)
+
+    # store pwd in a file one exit
+    shfm > file
+
+For ease of use, a wrapper function can be added to your .shellrc (.bashrc, etc).
+
+    shfm() {
+        cd "$(command shfm)"
+    }
 
 
 opener

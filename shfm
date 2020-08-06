@@ -32,10 +32,13 @@ term_setup() {
 
 term_reset() {
     esc DECAWM h
-    esc DECTCEM h
-    esc ED2
+    esc DECTCEM h >&2
+    esc ED2       >&2
     esc DECSTBM
     stty "$stty"
+
+    # needed for cd-on-exit
+    printf '%s\n' "$PWD" >&1
 }
 
 term_resize() {
@@ -173,14 +176,12 @@ status_line() {
            *) esc SGR 34 7 ;;
     esac
 
-    printf '%s ' "($y/$1)"
+    printf '%*s\r%s ' "$COLUMNS" "" "($y/$1)"
 
     case $ltype in
         '') printf %s "$PWD" ;;
          *) printf %s "$ltype"
     esac
-
-    printf '%*s' "$COLUMNS" ""
 
     esc SGR
     esc DECRC
@@ -401,4 +402,4 @@ main() {
     done
 }
 
-main "$@"
+main "$@" >/dev/tty
