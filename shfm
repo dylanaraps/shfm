@@ -145,7 +145,7 @@ list_print() {
 
     for file do
         case $i in
-            "$y2") esc SGR 34 7
+            "$y2") esc SGR 0 7
         esac
 
         case $((i - end)) in
@@ -169,7 +169,12 @@ redraw() {
 status_line() {
     esc DECSC
     esc CUP "$LINES"
-    esc SGR 31 7
+
+    case $USER in
+        root) esc SGR 31 7 ;;
+           *) esc SGR 34 7 ;;
+    esac
+
     printf '%-*s' "$COLUMNS" "$1"
     esc SGR
     esc DECRC
@@ -199,7 +204,7 @@ line_print() {
     offset=$1
 
     case $offset in
-        "$y") esc SGR 34 7
+        "$y") esc SGR 0 7
     esac
 
     shift "$offset"
