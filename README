@@ -65,7 +65,7 @@ rather flexible.
     # store pwd in var on exit
     var=$(shfm)
 
-    # store pwd in a file one exit
+    # store pwd in a file on exit
     shfm > file
 
 For ease of use, a wrapper function can be added to your .shellrc (.bashrc, etc).
