@@ -91,11 +91,13 @@ cmd_run() {
     esc screen_alt h
     esc DECTCEM h
     esc DECSTBM
+    stty "$stty"
     "$@" ||:
     esc DECSTBM 1 "$((LINES - 2))"
     esc screen_alt l
     esc DECTCEM l
     esc CUP "$y2"
+    stty -icanon -echo
 }
 
 file_escape() {
