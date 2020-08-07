@@ -39,6 +39,17 @@ q - quit
 . - toggle hidden files
 ? - show help
 
+Also supported:
+
+down arrow  - down
+up arrow    - up
+left arrow  - go up level
+right arrow - open file or directory
+
+backspace   - up
+enter       - open file or directory
+
+
 todo
 ________________________________________________________________________________
 
