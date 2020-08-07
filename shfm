@@ -24,6 +24,7 @@ esc() {
 term_setup() {
     stty=$(stty -g)
     stty -icanon -echo
+    esc screen_alt h
     esc DECAWM l
     esc DECTCEM l
     esc ED2
@@ -31,10 +32,11 @@ term_setup() {
 }
 
 term_reset() {
-    esc DECAWM h  >&2
-    esc DECTCEM h >&2
-    esc ED2       >&2
-    esc DECSTBM   >&2
+    esc DECAWM h     >&2
+    esc DECTCEM h    >&2
+    esc ED2          >&2
+    esc DECSTBM      >&2
+    esc screen_alt l >&2
     stty "$stty"
 
     # needed for cd-on-exit
@@ -88,16 +90,15 @@ term_scroll_up() {
 }
 
 cmd_run() {
-    esc screen_alt h
+    stty "$stty"
     esc DECTCEM h
     esc DECSTBM
-    stty "$stty"
+    esc ED2
     "$@" ||:
     esc DECSTBM 1 "$((LINES - 2))"
-    esc screen_alt l
     esc DECTCEM l
-    esc CUP "$y2"
     stty -icanon -echo
+    hist=2
 }
 
 file_escape() {
@@ -136,12 +137,16 @@ list_print() {
     mid=$((bottom / 4 < 5 ? 1 : bottom / 4))
 
     case $hist in
-        1)
+        2) # redraw after cmd run
+            shift "$((y > y2 ? y - y2 : 0))"
+        ;;
+
+        1) # redraw after go-to-parent
             hist_search "$@"
             shift "$((y >= bottom ? y - mid : 0))"
         ;;
 
-        *)
+        *) # everything else
             shift "$((y >= bottom ? y - bottom : 0))"
         ;;
     esac
@@ -161,7 +166,7 @@ list_print() {
         i=$((i + 1))
     done
 
-    esc CUP "$((y > bottom ? y2 : y))"
+    esc CUP "$((y > y2 ? y2 : y))"
 }
 
 redraw() {
@@ -287,6 +292,7 @@ main() {
 
                 elif [ -e "$cur" ]; then
                     cmd_run "${SHFM_OPENER:="${EDITOR:=vi}"}" "$cur"
+                    redraw "$@"
                 fi
             ;;
 
@@ -370,6 +376,7 @@ main() {
                 export SHFM_LEVEL
                 SHFM_LEVEL=$((SHFM_LEVEL + 1))
                 cmd_run "${SHELL:=/bin/sh}"
+                redraw "$@"
             ;;
 
             \??)
