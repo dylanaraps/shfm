@@ -136,6 +136,11 @@ list_print() {
     end=$((bottom + 1))
     mid=$((bottom / 4 < 5 ? 1 : bottom / 4))
 
+    case $1$# in
+        '*1')      set -- empty ;;
+        '.[!.]*1') set -- 'no hidden files'
+    esac
+
     case $hist in
         2) # redraw after cmd run
             shift "$((y > y2 ? y - y2 : 0))"
@@ -353,6 +358,11 @@ main() {
             /?)
                 prompt / r
                 set -- "$ans"*
+
+                case $1$# in
+                    "$ans*1") set -- 'no results'
+                esac
+
                 y=1 y2=1 cur=$1 ltype="search $PWD/$ans*"
                 redraw "$@"
                 status_line "$#"
