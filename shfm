@@ -357,6 +357,9 @@ main() {
 
             /?)
                 prompt / r
+
+                # word splitting and globbing intentional
+                # shellcheck disable=2086
                 set -- $ans*
 
                 case $1$# in
