@@ -255,7 +255,7 @@ main() {
         ;;
 
         -v|--version)
-            printf 'shfm 0.4.1\n'
+            printf 'shfm 0.4.2\n'
             exit 0
         ;;
 
