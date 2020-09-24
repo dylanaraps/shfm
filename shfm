@@ -136,9 +136,8 @@ list_print() {
     end=$((bottom + 1))
     mid=$((bottom / 4 < 5 ? 1 : bottom / 4))
 
-    [ -e "$1" ] || case $1$# in
-        '*1')      set -- empty ;;
-        '.[!.]*1') set -- 'no hidden files'
+    case $# in
+        1) [ -e "$1" ] || set -- empty
     esac
 
     case $hist in
@@ -331,8 +330,8 @@ main() {
 
             .?)
                 case ${hidden:=1} in
-                    1) hidden=0; set -- .[!.]* ;;
-                    *) hidden=1; set -- *      ;;
+                    1) hidden=0; set -- .* ;;
+                    0) hidden=1; set -- *
                 esac
 
                 y=1 y2=1 cur=$1
