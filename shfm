@@ -136,7 +136,7 @@ list_print() {
     end=$((bottom + 1))
     mid=$((bottom / 4 < 5 ? 1 : bottom / 4))
 
-    case $1$# in
+    [ -e "$1" ] || case $1$# in
         '*1')      set -- empty ;;
         '.[!.]*1') set -- 'no hidden files'
     esac
