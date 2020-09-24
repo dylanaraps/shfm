@@ -195,7 +195,7 @@ status_line() {
          *) printf %s "$ltype"
     esac
 
-    esc SGR
+    esc SGR 0 0
     esc DECRC
 }
 
@@ -237,11 +237,11 @@ line_print() {
 
 line_format() {
     file_escape "$1"
-    esc EL0
     [ -d "$1" ] && esc SGR 1 31
     printf %s "$safe"
     [ -d "$1" ] && printf /
-    esc SGR
+    esc SGR 0 0
+    esc EL0
     printf '\r'
 }
 
