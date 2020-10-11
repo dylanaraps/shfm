@@ -238,7 +238,6 @@ line_format() {
     file_escape "$1"
     [ -d "$1" ] && esc SGR 1 31
     printf %s "$safe"
-    [ -d "$1" ] && printf /
     esc SGR 0 0
     esc EL0
     printf '\r'
@@ -291,7 +290,7 @@ main() {
             l?|C2|"$esc") # ARROW RIGHT
                 if [ -d "$cur" ] && cd -- "$cur" >/dev/null 2>&1; then
                     set -- *
-                    y=1 y2=1 cur=$1 ltype= hidden=
+                    y=1 y2=1 cur=$1 ltype= hidden= dironly=
                     redraw "$@"
 
                 elif [ -e "$cur" ]; then
@@ -309,7 +308,7 @@ main() {
                 esac
 
                 set -- *
-                y=1 y2=1 cur=$1 hist=1 hidden=
+                y=1 y2=1 cur=$1 hist=1 hidden= dironly=
                 redraw "$@"
             ;;
 
@@ -350,7 +349,7 @@ main() {
 
                 cd -- "${ans:="$0"}" >/dev/null 2>&1|| continue
                 set -- *
-                y=1 y2=1 cur=$1 hidden=
+                y=1 y2=1 cur=$1 hidden= dironly=
                 redraw "$@"
             ;;
 
@@ -373,14 +372,14 @@ main() {
             -?)
                 cd -- "$OLDPWD" >/dev/null 2>&1|| continue
                 set -- *
-                y=1 y2=1 cur=$1 hidden=
+                y=1 y2=1 cur=$1 hidden= dironly=
                 redraw "$@"
             ;;
 
             \~?)
                 cd || continue
                 set -- *
-                y=1 y2=1 cur=$1 hidden=
+                y=1 y2=1 cur=$1 hidden= dironly=
                 redraw "$@"
             ;;
 
@@ -388,6 +387,15 @@ main() {
                 export SHFM_LEVEL
                 SHFM_LEVEL=$((SHFM_LEVEL + 1))
                 cmd_run "${SHELL:=/bin/sh}"
+                redraw "$@"
+            ;;
+            d?)
+                case ${dironly:=1} in
+                    1) dironly=0; set -- */ ;;
+                    0) dironly=1; set -- *
+                esac
+
+                y=1 y2=1 cur=$1
                 redraw "$@"
             ;;
 
@@ -405,6 +413,7 @@ main() {
                        '~ - go home' \
                        '! - spawn shell' \
                        '. - toggle hidden files' \
+                       'd - toggle directories only' \
                        '? - show keybinds'
 
                 y=1 y2=1 cur=$1 ltype=keybinds
