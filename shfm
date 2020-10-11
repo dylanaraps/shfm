@@ -291,7 +291,7 @@ main() {
             l?|C2|"$esc") # ARROW RIGHT
                 if [ -d "$cur" ] && cd -- "$cur" >/dev/null 2>&1; then
                     set -- *
-                    y=1 y2=1 cur=$1 ltype=
+                    y=1 y2=1 cur=$1 ltype= hidden=
                     redraw "$@"
 
                 elif [ -e "$cur" ]; then
@@ -309,7 +309,7 @@ main() {
                 esac
 
                 set -- *
-                y=1 y2=1 cur=$1 hist=1
+                y=1 y2=1 cur=$1 hist=1 hidden=
                 redraw "$@"
             ;;
 
@@ -350,7 +350,7 @@ main() {
 
                 cd -- "${ans:="$0"}" >/dev/null 2>&1|| continue
                 set -- *
-                y=1 y2=1 cur=$1
+                y=1 y2=1 cur=$1 hidden=
                 redraw "$@"
             ;;
 
@@ -373,14 +373,14 @@ main() {
             -?)
                 cd -- "$OLDPWD" >/dev/null 2>&1|| continue
                 set -- *
-                y=1 y2=1 cur=$1
+                y=1 y2=1 cur=$1 hidden=
                 redraw "$@"
             ;;
 
             \~?)
                 cd || continue
                 set -- *
-                y=1 y2=1 cur=$1
+                y=1 y2=1 cur=$1 hidden=
                 redraw "$@"
             ;;
 
