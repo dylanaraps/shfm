@@ -1,23 +1,24 @@
 #!/bin/sh
+IFS=
 
 esc() {
     case $1 in
         # vt100 (IL is vt102) (DECTCEM is vt520)
-        CUD)     printf '%s[%sB'    "$esc_c" "$2"      ;; # cursor down
-        CUP)     printf '%s[%s;%sH' "$esc_c" "$2" "$3" ;; # cursor home
-        CUU)     printf '%s[%sA'    "$esc_c" "$2"      ;; # cursor up
-        DECAWM)  printf '%s[?7%s'   "$esc_c" "$2"      ;; # line wrap
-        DECRC)   printf '%s8'       "$esc_c"           ;; # cursor restore
-        DECSC)   printf '%s7'       "$esc_c"           ;; # cursor save
-        DECSTBM) printf '%s[%s;%sr' "$esc_c" "$2" "$3" ;; # scroll region
-        DECTCEM) printf '%s[?25%s'  "$esc_c" "$2"      ;; # cursor visible
-        ED[0-2]) printf '%s[%sJ'    "$esc_c" "${1#ED}" ;; # clear screen
-        EL[0-2]) printf '%s[%sK'    "$esc_c" "${1#EL}" ;; # clear line
-        IL)      printf '%s[%sL'    "$esc_c" "$2"      ;; # insert line
-        SGR)     printf '%s[%s;%sm' "$esc_c" "$2" "$3" ;; # colors
+        CUD)     printf '%s[%sB'    $esc_c $2      ;; # cursor down
+        CUP)     printf '%s[%s;%sH' $esc_c $2 $3   ;; # cursor home
+        CUU)     printf '%s[%sA'    $esc_c $2      ;; # cursor up
+        DECAWM)  printf '%s[?7%s'   $esc_c $2      ;; # line wrap
+        DECRC)   printf '%s8'       $esc_c         ;; # cursor restore
+        DECSC)   printf '%s7'       $esc_c         ;; # cursor save
+        DECSTBM) printf '%s[%s;%sr' $esc_c $2 $3   ;; # scroll region
+        DECTCEM) printf '%s[?25%s'  $esc_c $2      ;; # cursor visible
+        ED[0-2]) printf '%s[%sJ'    $esc_c ${1#ED} ;; # clear screen
+        EL[0-2]) printf '%s[%sK'    $esc_c ${1#EL} ;; # clear line
+        IL)      printf '%s[%sL'    $esc_c $2      ;; # insert line
+        SGR)     printf '%s[%s;%sm' $esc_c $2 $3   ;; # colors
 
         # xterm (since 1988, supported widely)
-        screen_alt) printf '%s[?1049%s' "$esc_c" "$2" ;; # alternate buffer
+        screen_alt) printf '%s[?1049%s' $esc_c $2  ;; # alternate buffer
     esac
 }
 
@@ -28,7 +29,7 @@ term_setup() {
     esc DECAWM l
     esc DECTCEM l
     esc ED2
-    esc DECSTBM 1 "$((LINES - 2))"
+    esc DECSTBM 1 $((LINES - 2))
 }
 
 term_reset() {
@@ -37,10 +38,10 @@ term_reset() {
     esc ED2          >&2
     esc DECSTBM      >&2
     esc screen_alt l >&2
-    stty "$stty"
+    stty $stty
 
     # needed for cd-on-exit
-    printf '%s\n' "$PWD" >&1
+    printf '%s\n' $PWD >&1
 }
 
 term_resize() {
@@ -48,7 +49,9 @@ term_resize() {
     # shellcheck disable=2046
     {
         set -f
+        IFS=' '
         set +f -- $(stty size)
+        IFS=
     }
 
     LINES=$1 COLUMNS=$2
@@ -65,10 +68,10 @@ term_scroll_down() {
     y=$((y + 1))
     y2=$((y2 + 1 < bottom ? y2 + 1 : bottom))
 
-    line_print "$((y - 1))" "$@"
+    line_print $((y - 1)) $@
     printf '\n'
-    line_print "$y" "$@"
-    status_line "$#"
+    line_print $y $@
+    status_line $#
 }
 
 term_scroll_up() {
@@ -78,24 +81,24 @@ term_scroll_up() {
 
     y=$((y - 1))
 
-    line_print "$((y + 1))" "$@"
+    line_print $((y + 1)) $@
 
     case $y2 in
         1) esc IL ;;
         *) esc CUU; y2=$((y2 > 1 ? y2 - 1 : 1))
     esac
 
-    line_print "$y" "$@"
-    status_line "$#"
+    line_print $y $@
+    status_line $#
 }
 
 cmd_run() {
-    stty "$stty"
+    stty $stty
     esc DECTCEM h
     esc DECSTBM
     esc ED2
-    "$@" ||:
-    esc DECSTBM 1 "$((LINES - 2))"
+    $@ ||:
+    esc DECSTBM 1 $((LINES - 2))
     esc DECTCEM l
     stty -icanon -echo
     hist=2
@@ -121,7 +124,7 @@ hist_search() {
 
     for file do
         case ${PWD%%/}/$file in
-            "$old_pwd") y=$j y2=$((j > bottom ? mid : j)) cur=$file
+            $old_pwd) y=$j y2=$((j > bottom ? mid : j)) cur=$file
         esac
 
         j=$((j + 1))
@@ -137,32 +140,32 @@ list_print() {
     mid=$((bottom / 4 < 5 ? 1 : bottom / 4))
 
     case $# in
-        1) [ -e "$1" ] || set -- empty
+        1) [ -e $1 ] || set -- empty
     esac
 
     case $hist in
         2) # redraw after cmd run
-            shift "$((y > y2 ? y - y2 : 0))"
+            shift $((y > y2 ? y - y2 : 0))
         ;;
 
         1) # redraw after go-to-parent
-            hist_search "$@"
-            shift "$((y >= bottom ? y - mid : 0))"
+            hist_search $@
+            shift $((y >= bottom ? y - mid : 0))
         ;;
 
         *) # everything else
-            shift "$((y >= bottom ? y - bottom : 0))"
+            shift $((y >= bottom ? y - bottom : 0))
         ;;
     esac
 
     for file do
         case $i in
-            "$y2") esc SGR 0 7
+            $y2) esc SGR 0 7
         esac
 
         case $((i - end)) in
             -*)
-                line_format "$file"
+                line_format $file
                 esc CUD
             ;;
         esac
@@ -170,28 +173,28 @@ list_print() {
         i=$((i + 1))
     done
 
-    esc CUP "$((y > y2 ? y2 : y))"
+    esc CUP $((y > y2 ? y2 : y))
 }
 
 redraw() {
-    list_print "$@"
-    status_line "$#"
+    list_print $@
+    status_line $#
 }
 
 status_line() {
     esc DECSC
-    esc CUP "$LINES"
+    esc CUP $LINES
 
     case $USER in
         root) esc SGR 31 7 ;;
            *) esc SGR 34 7 ;;
     esac
 
-    printf '%*s\r%s ' "$COLUMNS" "" "($y/$1)"
+    printf '%*s\r%s ' $COLUMNS '' "($y/$1)"
 
     case $ltype in
-        '') printf %s "$PWD" ;;
-         *) printf %s "$ltype"
+        '') printf %s $PWD ;;
+         *) printf %s $ltype
     esac
 
     esc SGR 0 0
@@ -200,8 +203,8 @@ status_line() {
 
 prompt() {
     esc DECSC
-    esc CUP "$LINES"
-    printf %s "$1"
+    esc CUP $LINES
+    printf %s $1
     esc DECTCEM h
     esc EL0
 
@@ -222,23 +225,23 @@ line_print() {
     offset=$1
 
     case $offset in
-        "$y") esc SGR 0 7
+        $y) esc SGR 0 7
     esac
 
-    shift "$offset"
+    shift $offset
 
     case $offset in
-        "$y") cur=$1
+        $y) cur=$1
     esac
 
-    line_format "$1"
+    line_format $1
 }
 
 line_format() {
-    file_escape "$1"
-    [ -d "$1" ] && esc SGR 1 31
+    file_escape $1
+    [ -d $1 ] && esc SGR 1 31
     printf %s "$safe"
-    [ -d "$1" ] && printf /
+    [ -d $1 ] && printf /
     esc SGR 0 0
     esc EL0
     printf '\r'
@@ -259,7 +262,7 @@ main() {
         ;;
 
         *)
-            cd -- "${1:-"$PWD"}"
+            cd -- ${1:-$PWD}
         ;;
     esac
 
@@ -273,34 +276,34 @@ main() {
     term_setup
 
     trap 'term_reset'  EXIT INT
-    trap 'term_resize; term_setup; y=1 y2=1; redraw "$@"' WINCH
+    trap 'term_resize; term_setup; y=1 y2=1; redraw $@' WINCH
 
     y=1 y2=1
-    redraw "$@"
+    redraw $@
 
     while key=$(dd ibs=1 count=1 2>/dev/null); do
         case $key${esc:=0} in
             k?|A2)
-                term_scroll_up "$@"
+                term_scroll_up $@
             ;;
 
             j?|B2)
-                term_scroll_down "$@"
+                term_scroll_down $@
             ;;
 
-            l?|C2|"$esc") # ARROW RIGHT
-                if [ -d "$cur" ] && cd -- "$cur" >/dev/null 2>&1; then
+            l?|C2|$esc) # ARROW RIGHT
+                if [ -d $cur ] && cd -- $cur >/dev/null 2>&1; then
                     set -- *
                     y=1 y2=1 cur=$1 ltype=
-                    redraw "$@"
+                    redraw $@
 
-                elif [ -e "$cur" ]; then
-                    cmd_run "${SHFM_OPENER:="${EDITOR:=vi}"}" "$cur"
-                    redraw "$@"
+                elif [ -e $cur ]; then
+                    cmd_run ${SHFM_OPENER:=${EDITOR:=vi}} $cur
+                    redraw $@
                 fi
             ;;
 
-            h?|D2|"$bs_char"?) # ARROW LEFT
+            h?|D2|$bs_char?) # ARROW LEFT
                 old_pwd=$PWD
 
                 case $ltype in
@@ -310,7 +313,7 @@ main() {
 
                 set -- *
                 y=1 y2=1 cur=$1 hist=1
-                redraw "$@"
+                redraw $@
             ;;
 
             g?)
@@ -319,13 +322,13 @@ main() {
                 esac
 
                 y=1 y2=1 cur=$1
-                redraw "$@"
+                redraw $@
             ;;
 
             G?)
                 y=$#
                 y2=$(($# < bottom ? $# : bottom))
-                redraw "$@"
+                redraw $@
             ;;
 
             .?)
@@ -335,7 +338,7 @@ main() {
                 esac
 
                 y=1 y2=1 cur=$1
-                redraw "$@"
+                redraw $@
             ;;
 
             :?)
@@ -345,13 +348,13 @@ main() {
                 # shellcheck disable=2088
                 case $ans in
                     '~')   ans=$HOME ;;
-                    '~/'*) ans=$HOME/${ans#"~/"}
+                    '~/'*) ans=$HOME/${ans#'~/'}
                 esac
 
-                cd -- "${ans:="$0"}" >/dev/null 2>&1|| continue
+                cd -- ${ans:=$0} >/dev/null 2>&1|| continue
                 set -- *
                 y=1 y2=1 cur=$1
-                redraw "$@"
+                redraw $@
             ;;
 
             /?)
@@ -366,29 +369,29 @@ main() {
                 esac
 
                 y=1 y2=1 cur=$1 ltype="search $PWD/$ans*"
-                redraw "$@"
-                status_line "$#"
+                redraw $@
+                status_line $#
             ;;
 
             -?)
-                cd -- "$OLDPWD" >/dev/null 2>&1|| continue
+                cd -- $OLDPWD >/dev/null 2>&1|| continue
                 set -- *
                 y=1 y2=1 cur=$1
-                redraw "$@"
+                redraw $@
             ;;
 
             \~?)
                 cd || continue
                 set -- *
                 y=1 y2=1 cur=$1
-                redraw "$@"
+                redraw $@
             ;;
 
             \!?)
                 export SHFM_LEVEL
                 SHFM_LEVEL=$((SHFM_LEVEL + 1))
-                cmd_run "${SHELL:=/bin/sh}"
-                redraw "$@"
+                cmd_run ${SHELL:=/bin/sh}
+                redraw $@
             ;;
 
             \??)
@@ -408,18 +411,18 @@ main() {
                        '? - show keybinds'
 
                 y=1 y2=1 cur=$1 ltype=keybinds
-                redraw "$@"
-                status_line "$#"
+                redraw $@
+                status_line $#
             ;;
 
             q?) exit 0 ;;
 
             # handle keys which emit escape sequences
-            "$esc_c"*) esc=1 ;;
-                 '[1') esc=2 ;;
-                    *) esc=0 ;;
+            $esc_c*) esc=1 ;;
+               '[1') esc=2 ;;
+                  *) esc=0 ;;
         esac
     done
 }
 
-main "$@" >/dev/tty
+main $@ >/dev/tty
