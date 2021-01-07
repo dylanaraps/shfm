@@ -357,9 +357,11 @@ main() {
             /?)
                 prompt / r
 
-                # word splitting and globbing intentional
+                IFS=
+                # globbing intentional, word splitting is disabled.
                 # shellcheck disable=2086
-                set -- "$ans"*
+                set -- $ans*
+                unset IFS
 
                 case $1$# in
                     "$ans*1") set -- 'no results'
