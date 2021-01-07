@@ -30,6 +30,7 @@ l - open file or directory
 h - go up level
 g - go to top
 G - go to bottom
+d - toggle printing directories first
 q - quit
 : - cd to <input>
 / - search current directory <input>*
@@ -54,7 +55,7 @@ todo
 ________________________________________________________________________________
 
 - [x] sanitize filenames for display.
-- [ ] print directories first (hard).
+- [x] print directories first.
 - [x] fix buggy focus after exit from inline editor.
 - [ ] maybe file operations.
 - [x] add / to directories.
