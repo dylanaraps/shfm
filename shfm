@@ -357,6 +357,7 @@ main() {
             G?)
                 y=$#
                 y2=$(($# < bottom ? $# : bottom))
+                line_print $y $@
                 redraw $@
             ;;
 
