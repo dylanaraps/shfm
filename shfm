@@ -140,6 +140,10 @@ list_print() {
         1) [ -e "$1" ] || set -- empty
     esac
 
+    case $1$2$3$# in
+        "...*3") [ -n "$hidden" ] && set -- empty
+    esac
+
     case $hist in
         2) # redraw after cmd run
             shift "$((y > y2 ? y - y2 : 0))"
