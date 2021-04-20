@@ -14,8 +14,12 @@ esc() {
         ED[0-2]) printf '%s[%sJ'    "$esc_c" "${1#ED}" ;; # clear screen
         EL[0-2]) printf '%s[%sK'    "$esc_c" "${1#EL}" ;; # clear line
         IL)      printf '%s[%sL'    "$esc_c" "$2"      ;; # insert line
-        SGR)     printf '%s[%s;%sm' "$esc_c" "$2" "$3" ;; # colors
-
+        SGR)
+            case $# in
+                2) printf '%s[%sm'    "$esc_c" "$2" ;;
+                3) printf '%s[%s;%sm' "$esc_c" "$2" "$3" ;;
+            esac
+        ;;
         # xterm (since 1988, supported widely)
         screen_alt) printf '%s[?1049%s' "$esc_c" "$2" ;; # alternate buffer
     esac
@@ -28,7 +32,7 @@ term_setup() {
     esc DECAWM l
     esc DECTCEM l
     esc ED2
-    esc DECSTBM 1 "$((LINES - 2))"
+    esc DECSTBM 1 "$((LINES - 3))"
 }
 
 term_reset() {
@@ -54,7 +58,7 @@ term_resize() {
     LINES=$1 COLUMNS=$2
 
     # space for status_line
-    bottom=$((LINES - 2))
+    bottom=$((LINES - 3))
 }
 
 term_scroll_down() {
@@ -94,8 +98,10 @@ cmd_run() {
     esc DECTCEM h
     esc DECSTBM
     esc ED2
-    "$@" ||:
-    esc DECSTBM 1 "$((LINES - 2))"
+    printf %s "$@"
+    "$@" 2>&1 || :
+    esc ED2
+    esc DECSTBM 1 "$((LINES - 3))"
     esc DECTCEM l
     stty -icanon -echo
     hist=2
@@ -118,10 +124,11 @@ file_escape() {
 
 hist_search() {
     hist=0 j=1
+    y=1 y2=1 # default values in case nothing found
 
     for file do
         case ${PWD%%/}/$file in
-            "$old_pwd") y=$j y2=$((j > bottom ? mid : j)) cur=$file
+            "$old_pwd") y=$j y2=$((j >= bottom ? mid : j)) cur=$file
         esac
 
         j=$((j + 1))
@@ -154,6 +161,7 @@ list_print() {
             shift "$((y >= bottom ? y - bottom : 0))"
         ;;
     esac
+    hist=0
 
     for file do
         case $i in
@@ -180,21 +188,63 @@ redraw() {
 
 status_line() {
     esc DECSC
-    esc CUP "$LINES"
+    esc CUP "$((LINES - 1))"
+
+    # esc SGR 32
+    # printf %s "$y $y2 $bottom ${selected:-empty}"
+    # esc EL0
+    # esc CUD
+    # esc SGR 33
+    # printf '\r%s' "${others:-empty}"
+    # esc CUD
+    # esc SGR 0
+
+    # printf '\r[ '
+    # ct=1
+    # while true; do
+        # indirect ind "tab$ct"
+        # [ -n "$ind" ] && esc SGR 36 && [ "$ct" -eq "$tab_num" ] && esc SGR 1 7
+        # # printf %s "$ct"
+        # # esc SGR 0
+        # # printf ' '
+        # printf '%s%s[0m ' "$ct" "$esc_c"
+        # [ "$ct" -eq "$num_tabs" ] && break
+        # ct=$((ct + 1))
+    # done
+    # printf ']'
+    # esc CUD
+    printf '\r[ '
+    [ -n "$tab1" ] && esc SGR 36 && [ "$tab_num" -eq 1 ] && esc SGR 1 7
+    printf 1
+    esc SGR 0
+    printf ' '
+    [ -n "$tab2" ] && esc SGR 36 && [ "$tab_num" -eq 2 ] && esc SGR 1 7
+    printf 2
+    esc SGR 0
+    printf ' '
+    [ -n "$tab3" ] && esc SGR 36 && [ "$tab_num" -eq 3 ] && esc SGR 1 7
+    printf 3
+    esc SGR 0
+    printf ' '
+    [ -n "$tab4" ] && esc SGR 36 && [ "$tab_num" -eq 4 ] && esc SGR 1 7
+    printf 4
+    esc SGR 0
+    printf ' ]'
+    esc CUD
 
     case $USER in
         root) esc SGR 31 7 ;;
-           *) esc SGR 34 7 ;;
+           *) esc SGR 36 7 ;;
     esac
 
-    printf '%*s\r%s ' "$COLUMNS" "" "($y/$1)"
+    printf '\r%*s\r%s ' "$COLUMNS" "" "($y/$1)"
 
     case $ltype in
         '') printf %s "$PWD" ;;
          *) printf %s "$ltype"
     esac
 
-    esc SGR 0 0
+    esc SGR 0
     esc DECRC
 }
 
@@ -215,7 +265,22 @@ prompt() {
 
     esc DECRC
     esc DECTCEM l
-    status_line "($y/$#) $PWD"
+    status_line "$3"
+}
+
+yes_no() {
+    esc DECSC
+    esc CUP "$LINES"
+    printf %s "$1"
+    esc DECTCEM h
+    esc EL0
+    
+    key=$(dd ibs=1 count=1 2>/dev/null)
+    
+    esc DECRC
+    esc DECTCEM l
+    status_line "$2"
+    [ "$key" = 'y' ]
 }
 
 line_print() {
@@ -235,13 +300,286 @@ line_print() {
 }
 
 line_format() {
+    check_selected "$1"
+    [ -n "$is_selected" ] && printf + || printf ' '
     file_escape "$1"
     [ -d "$1" ] && esc SGR 1 31
     printf %s "$safe"
     [ -d "$1" ] && printf /
-    esc SGR 0 0
+    esc SGR 0
     esc EL0
     printf '\r'
+}
+
+to_tab() {
+    old_info="$PWD$hidden$ltype"
+    old_pos="$y$y2"
+    # indirect "tab$tab_num" PWD
+    # indirect "hidden$tab_num" hidden
+    # indirect "ltype$tab_num" ltype
+    # indirect "y_$tab_num" y
+    # indirect "y2_$tab_num" y2
+    case $tab_num in
+        1)
+            tab1="$PWD"
+            hidden1="$hidden"
+            ltype1="$ltype"
+            y_1="$y"
+            y2_1="$y2"
+        ;;
+        2)
+            tab2="$PWD"
+            hidden2="$hidden"
+            ltype2="$ltype"
+            y_2="$y"
+            y2_2="$y2"
+        ;;
+        3)
+            tab3="$PWD"
+            hidden3="$hidden"
+            ltype3="$ltype"
+            y_3="$y"
+            y2_3="$y2"
+        ;;
+        4)
+            tab4="$PWD"
+            hidden4="$hidden"
+            ltype4="$ltype"
+            y_4="$y"
+            y2_4="$y2"
+        ;;
+    esac
+    tab_num="$1"
+    # indirect ind "tab$tab_num"
+    # if [ -z "$ind" ]; then
+        # indirect "tab$tab_num" PWD
+        # indirect "hidden$tab_num" hidden
+        # indirect "ltype$tab_num" ltype
+        # indirect "y_$tab_num" y
+        # indirect "y2_$tab_num" y2
+    # fi
+    # indirect nwd "tab$tab_num"
+    case $1 in
+        1)
+            [ -z "$tab1" ] && tab1="$PWD" && hidden1="$hidden" && ltype1="$ltype" && y_1=1 && y2_1=1
+            nwd="$tab1"
+        ;;
+        2)
+            [ -z "$tab2" ] && tab2="$PWD" && hidden2="$hidden" && ltype2="$ltype" && y_2=1 && y2_2=1
+            nwd="$tab2"
+        ;;
+        3)
+            [ -z "$tab3" ] && tab3="$PWD" && hidden3="$hidden" && ltype3="$ltype" && y_3=1 && y2_3=1
+            nwd="$tab3"
+        ;;
+        4)
+            [ -z "$tab4" ] && tab4="$PWD" && hidden4="$hidden" && ltype4="$ltype" && y_4=1 && y2_4=1
+            nwd="$tab4"
+        ;;
+    esac
+    # indirect hidden "hidden$tab_num"
+    # indirect ltype "ltype$tab_num"
+    # indirect y "y_$tab_num"
+    # indirect y2 "y2_$tab_num"
+    case $tab_num in
+        1)
+            hidden="$hidden1"
+            ltype="$ltype1"
+            y="$y_1"
+            y2="$y2_1"
+        ;;
+        2)
+            hidden="$hidden2"
+            ltype="$ltype2"
+            y="$y_2"
+            y2="$y2_2"
+        ;;
+        3)
+            hidden="$hidden3"
+            ltype="$ltype3"
+            y="$y_3"
+            y2="$y2_3"
+        ;;
+        4)
+            hidden="$hidden4"
+            ltype="$ltype4"
+            y="$y_4"
+            y2="$y2_4"
+        ;;
+    esac
+    switched_tabs=true
+    changed=all
+    [ "$nwd$hidden$ltype" = "$old_info" ] && changed=pos && [ "$y$y2" = "$old_pos" ] && changed=
+    :
+}
+
+try_tabs() {
+    unset nwd
+    for tab do
+        # indirect ind "tab$tab_num"
+        # [ -z "$ind" ] && continue
+        case $tab in
+            1) [ -z "$tab1" ] && continue ;;
+            2) [ -z "$tab2" ] && continue ;;
+            3) [ -z "$tab3" ] && continue ;;
+            4) [ -z "$tab4" ] && continue ;;
+        esac
+        to_tab "$tab" && return 0
+    done
+    return 1
+}
+
+next_tab() {
+    ct="$tab_num"
+    nums=
+    while true; do
+        ct=$((ct == num_tabs ? 1 : ct + 1))
+        [ "$ct" -eq "$tab_num" ] && break
+        [ -n "$nums" ] && nums="$nums $ct" || nums="$ct"
+    done
+    try_tabs $nums
+}
+
+prev_tab() {
+    ct="$tab_num"
+    nums=
+    while true; do
+        ct=$((ct == 1 ? num_tabs : ct - 1))
+        [ "$ct" -eq "$tab_num" ] && break
+        [ -n "$nums" ] && nums="$nums $ct" || nums="$ct"
+    done
+    try_tabs $nums
+}
+
+# indirect() {
+	# eval "$1=\"\$$2\""
+# }
+# 
+# indirect_clear() {
+	# eval "$1="
+# }
+
+check_selected() {
+    IFS='/'
+    is_selected=
+    for s in $selected; do
+        [ "$s" = "$1" ] && is_selected=true && break
+    done
+    unset IFS
+}
+
+add_selected() {
+    [ -e "$1" ] || return
+    IFS='/'
+    for s in $selected; do
+        [ "$s" = "$1" ] && return
+    done
+    unset IFS
+    selected="$selected$1/"
+}
+
+toggle_cur() {
+    selected="/$selected"
+    beg="${selected%%/$cur/*}"
+    end="${selected##*/$cur/}"
+    [ -z "$beg$end" ] && selected= && return
+    [ "$beg" = "$end" ] && selected="$selected$cur/" || selected="$beg/$end"
+    selected="${selected#/}"
+    selected="${selected%/}/"
+}
+
+toggle_all(){
+    IFS='/'
+    new_selected=
+    for file; do
+        was_selected=
+        for s in $selected; do
+            [ "$s" = "$file" ] && was_selected=true && continue
+        done
+        [ -z "$was_selected" ] && new_selected="$new_selected$file/"
+    done
+    unset IFS
+    selected="$new_selected"
+    redraw "$@"
+}
+
+filter_inpwd() {
+    IFS='/'
+    cwd=
+    fn=
+    set -- "$1//"
+    for piece in $1; do
+        if [ -z "$piece" ]; then
+            [ -z "$fn" ] && continue
+            [ "$PWD" = "$cwd" ] && inpwd="$inpwd$fn/" || notinpwd="$notinpwd$cwd/$fn/"
+            cwd=
+            fn=
+        elif [ -n "$fn" ]; then
+            cwd="$cwd/$fn"
+        fi
+        fn="$piece"
+    done
+    unset IFS
+}
+
+add_paths() {
+    IFS='/'
+    with_paths=
+    for s in $selected; do
+        [ -n "$s" ] && with_paths="$with_paths$PWD/$s/"
+    done
+    unset IFS
+    selected=
+}
+
+switch_dir() {
+    [ "$1" = "$PWD" ] && return 1
+    [ "$1" = '..' ] && [ "$PWD" = '/' ] && return 1
+    add_paths
+    cd -- "$1" >/dev/null 2>&1 || return 1
+    filter_inpwd "$others"
+    selected="$inpwd"
+    others="$notinpwd$with_paths"
+}
+
+others_op() {
+    IFS='/'
+    cwd=
+    fn=
+    others="$others//"
+    for piece in $others; do
+        if [ -z "$piece" ]; then
+            if [ -n "$fn" ] && [ -e "$cwd/$fn" ]; then
+                case $1 in
+                    p)
+                        if [ -d "$cwd/$fn" ]; then
+                            cmd_run cp '-r' "$cwd/$fn" "$PWD"
+                        else
+                            cmd_run cp "$cwd/$fn" "$PWD"
+                        fi
+                    ;;
+                    v) 
+                        cmd_run mv "$cwd/$fn" "$PWD"
+                    ;;
+                    x)
+                        cmd_run rm '-rf' "$cwd/$fn"
+                    ;;
+                esac
+            fi
+            cwd=
+            fn=
+        elif [ -n "$fn" ]; then
+            cwd="$cwd/$fn"
+        fi
+        fn="$piece"
+    done
+    unset IFS
+    others=
+}
+
+get_cur() {
+    shift "$1"
+    cur="$1"
 }
 
 main() {
@@ -265,10 +603,18 @@ main() {
 
     esc_c=$(printf '\033')
     bs_char=$(printf '\177')
+    tab_char=$(printf '\011')
 
     set -- *
     cur=$1
-
+    tab1="$PWD"
+    num_tabs=4
+    tab_num=1
+    selected=
+    # ind=
+    switched_tabs=
+    set_type=
+    
     term_resize
     term_setup
 
@@ -280,6 +626,10 @@ main() {
 
     while key=$(dd ibs=1 count=1 2>/dev/null); do
         case $key${esc:=0} in
+            42) esc=4 ;;
+            52) esc=5 ;;
+            62) esc=6 ;;
+
             k?|A2)
                 term_scroll_up "$@"
             ;;
@@ -289,11 +639,10 @@ main() {
             ;;
 
             l?|C2|"$esc") # ARROW RIGHT
-                if [ -d "$cur" ] && cd -- "$cur" >/dev/null 2>&1; then
-                    set -- *
-                    y=1 y2=1 cur=$1 ltype=
-                    redraw "$@"
-
+                [ "$ltype" = keybinds ] && continue
+                if [ -d "$cur" ] && switch_dir "$cur"; then
+                    set_type=normal
+                    y=1 y2=1 ltype=
                 elif [ -e "$cur" ]; then
                     cmd_run "${SHFM_OPENER:="${EDITOR:=vi}"}" "$cur"
                     redraw "$@"
@@ -304,16 +653,14 @@ main() {
                 old_pwd=$PWD
 
                 case $ltype in
-                    '') cd .. || continue ;;
+                    '') switch_dir .. || continue ;;
                      *) ltype= ;;
                 esac
-
-                set -- *
-                y=1 y2=1 cur=$1 hist=1
-                redraw "$@"
+                set_type=normal
+                y=1 y2=1 hist=1
             ;;
 
-            g?)
+            g?|H2) # HOME
                 case $y in
                     1) continue
                 esac
@@ -322,66 +669,198 @@ main() {
                 redraw "$@"
             ;;
 
-            G?)
+            G?|\~4) # END
                 y=$#
                 y2=$(($# < bottom ? $# : bottom))
+                get_cur "$y" "$@"
                 redraw "$@"
+            ;;
+            
+            \~5) # PGUP
+                [ "$y" -eq "$#" ] && continue
+                y=$((y + bottom))
+                if [ "$y" -gt "$#" ]; then
+                    y="$#"
+                    y2=$((bottom > $# ? $# : bottom))
+                fi
+                hist=2
+                get_cur "$y" "$@"
+                redraw "$@"
+            ;;
+            
+            \~6) # PGDOWN
+                [ "$y" -eq 1 ] && continue
+                y=$((y - bottom))
+                if [ "$y" -lt 1 ]; then
+                    y=1
+                    y2=1
+                fi
+                hist=2
+                get_cur "$y" "$@"
+                redraw "$@"
+            ;;
+
+            ' '?)
+                [ "$ltype" = keybinds ] || [ ! -e "$cur" ] && continue
+                toggle_cur
+                term_scroll_down "$@"
+            ;;
+
+            "$tab_char"?)
+                next_tab || to_tab "$((tab_num == num_tabs ? 1 : tab_num + 1))"
+            ;;
+
+            Z2)
+                prev_tab || to_tab "$((tab_num == 1 ? num_tabs : tab_num - 1))"
+            ;;
+
+            [1-9]?)
+                [ "$key" -le "$num_tabs" ] && [ "$key" -ne "$tab_num" ] && to_tab "$key"
+            ;;
+
+            p?|v?)
+                # false positive, behavior intentional
+                # shellcheck disable=2015
+                [ -z "$ltype" ] && [ -n "$others" ] || continue
+                others_op "$key"
+                set_type=normal
+            ;;
+
+            x?|P2)
+                [ "$ltype" = keybinds ] && continue
+                [ -z "$selected$others" ] && key=c || yes_no "remove 's'elected 'c'ur" "$#" || :
+                case $key in
+                    s)
+                        yes_no 'remove selected? y/n' "$#" || continue
+                        [ -z "$ltype" ] &&  set_type=normal || set_type=search
+                        if [ -n "$selected" ]; then
+                            y=1 y2=1
+                            IFS='/'
+                            set -f
+                            # word splitting disabled and globbing intentional
+                            # shellcheck disable=2086
+                            cmd_run rm '-rf' $selected
+                            set +f
+                            unset IFS
+                            selected=
+                        fi
+                        others_op x
+                    ;;
+                    c)
+                        # false positive, behavior intentional
+                        # shellcheck disable=2015
+                        [ -e "$cur" ] && yes_no "remove $cur? y/n" "$#" || continue
+                        [ -z "$ltype" ] &&  set_type=normal || set_type=search
+                        y=$((y == $# ? y - 1 : y))
+                        y2=$((y2 == $# ? y2 - 1 : y2))
+                        y=$((y == 0 ? 1 : y))
+                        y2=$((y2 == 0 ? 1 : y2))
+                        cmd_run rm '-rf' "$cur"
+                    ;;
+                esac
+            ;;
+
+            r?)
+                [ -z "$ltype" ] || continue
+                cmd_run mkdir "${XDG_CACHE_HOME:=$HOME/.cache}/shfm"
+                rename_file="$XDG_CACHE_HOME/shfm/bulk_rename"
+                for w; do
+                    printf '%s\n' "$w"
+                done > "$rename_file"
+                cmd_run "${EDITOR:=vi}" "$rename_file"
+                i=0
+                while IFS= read -r r; do
+                    i=$((i+1))
+                done < "$rename_file"
+                [ "$i" -eq "$#" ] || continue
+                renames=
+                while IFS= read -r r; do
+                    [ -n "$r" ] && [ ! -e "$r" ] && [ "$r" = "${r#*/}" ] && renames="$renames$1/$r/"
+                    shift
+                done < "$rename_file"
+                IFS='/'
+                old=
+                for new in $renames; do
+                    [ -z "$old" ] && old="$new" && continue
+                    cmd_run mv "$old" "$new"
+                    old=
+                done
+                unset IFS
+                set_type=normal
+            ;;
+
+            a?)
+                selected=
+                for file; do
+                    selected="$selected$file/"
+                done
+                redraw "$@"
+            ;;
+
+            A?)
+                toggle_all "$@"
+                redraw "$@"
+            ;;
+
+            n?)
+                [ -z "$ltype" ] || continue
+                yes_no "create new 'd'ir 'f'ile" "$#" || :
+                case $key in
+                    d)
+                        prompt 'directory name: ' r "$#"
+                        [ -z "$ans" ] || [ -e "$ans" ] && continue
+                        cmd_run mkdir "$ans"
+                    ;;
+                    f)
+                        prompt 'file name: ' r "$#"
+                        [ -z "$ans" ] || [ -e "$ans" ] && continue
+                        cmd_run touch "$ans"
+                    ;;
+                    *) continue ;;
+                esac
+                set_type=normal
             ;;
 
             .?)
-                case ${hidden:=1} in
-                    1) hidden=0; set -- .* ;;
-                    0) hidden=1; set -- *
-                esac
-
-                y=1 y2=1 cur=$1
-                redraw "$@"
+                [ -n "$ltype" ] && continue
+                [ -z "$hidden" ] && hidden='.' || hidden=
+                set_type=normal
+                y=1 y2=1
             ;;
 
             :?)
-                prompt "cd: " r
+                prompt "cd: " r "$#"
 
                 # false positive, behavior intentional
                 # shellcheck disable=2088
                 case $ans in
                     '~')   ans=$HOME ;;
-                    '~/'*) ans=$HOME/${ans#"~/"}
+                    '~/'*) ans=$HOME/${ans#"~/"} ;;
+                    '') continue ;;
                 esac
 
-                cd -- "${ans:="$0"}" >/dev/null 2>&1|| continue
-                set -- *
-                y=1 y2=1 cur=$1
-                redraw "$@"
+                switch_dir "$ans" || [ -n "$ltype" ] || continue
+                set_type=normal
+                y=1 y2=1 ltype=
             ;;
 
             /?)
-                prompt / r
-
-                # word splitting and globbing intentional
-                # shellcheck disable=2086
-                set -- $ans*
-
-                case $1$# in
-                    "$ans*1") set -- 'no results'
-                esac
-
-                y=1 y2=1 cur=$1 ltype="search $PWD/$ans*"
-                redraw "$@"
-                status_line "$#"
+                [ "$ltype" = keybinds ] && continue
+                prompt / r "$#"
+                set_type=search
+                y=1 y2=1
             ;;
 
             -?)
-                cd -- "$OLDPWD" >/dev/null 2>&1|| continue
-                set -- *
-                y=1 y2=1 cur=$1
-                redraw "$@"
+                switch_dir "$OLDPWD" || [ -n "$ltype" ] || continue
+                set_type=normal
+                y=1 y2=1 ltype=
             ;;
 
             \~?)
-                cd || continue
-                set -- *
-                y=1 y2=1 cur=$1
-                redraw "$@"
+                switch_dir "$HOME" || [ -n "$ltype" ] || continue
+                set_type=normal
+                y=1 y2=1 ltype=
             ;;
 
             \!?)
@@ -392,33 +871,108 @@ main() {
             ;;
 
             \??)
-                set -- 'j - down' \
-                       'k - up' \
-                       'l - open file or directory' \
-                       'h - go up level' \
-                       'g - go to top' \
-                       'G - go to bottom' \
-                       'q - quit' \
-                       ': - cd to <input>' \
-                       '/ - search current directory <input>*' \
-                       '- - go to last directory' \
-                       '~ - go home' \
-                       '! - spawn shell' \
-                       '. - toggle hidden files' \
-                       '? - show keybinds'
-
-                y=1 y2=1 cur=$1 ltype=keybinds
-                redraw "$@"
-                status_line "$#"
+                set_type=keybinds
+                y=1 y2=1
             ;;
 
-            q?) exit 0 ;;
+            q?)
+                if [ "$ltype" = keybinds ]; then
+                    set_type=normal
+                    y=1 y2=1 ltype=
+                else
+                    old_tab="$tab_num"
+                    prev_tab || exit 0
+                    # indirect_clear "tab$old_tab"
+                    case $old_tab in
+                        1) unset tab1 ;;
+                        2) unset tab2 ;;
+                        3) unset tab3 ;;
+                        4) unset tab4 ;;
+                    esac
+                fi
+            ;;
 
             # handle keys which emit escape sequences
             "$esc_c"*) esc=1 ;;
                  '[1') esc=2 ;;
                     *) esc=0 ;;
         esac
+        if [ -n "$switched_tabs" ]; then
+            switched_tabs=
+            switch_dir "$nwd" || :
+            status_line "$#"
+            case $changed in
+                pos)
+                    get_cur "$y" "$@"
+                    hist=2
+                    redraw "$@"
+                ;;
+                all)
+                    case $ltype in
+                        keybinds)
+                            set_type=keybinds
+                        ;;
+                        search*)
+                            set_type=search
+                            ans="${ltype#"search $PWD/"}"
+                            ans="${ans%'*'}"
+                        ;;
+                        '')
+                            set_type=normal
+                        ;;
+                    esac
+                ;;
+            esac
+        fi
+        case $set_type in
+            keybinds)
+                set -- '    j - down' \
+                       '    k - up' \
+                       '    l - open file or directory' \
+                       '    h - go up level' \
+                       '    g - go to top' \
+                       '    G - go to bottom' \
+                       '    q - quit' \
+                       '    : - cd to <input>' \
+                       '    / - search current directory <input>*' \
+                       '    - - go to last directory' \
+                       '    ~ - go home' \
+                       '    ! - spawn shell' \
+                       '    . - toggle hidden files' \
+                       '    ? - show keybinds' \
+                       '  tab - next tab (or prev tab if shift is held)' \
+                       '  1-4 - move to tab 1-4' \
+                       'space - select (or deselect) current item' \
+                       '    p - copy selected items to current folder' \
+                       '    v - move selected items to current folder' \
+                       '    x - delete' \
+                       '    r - bulk rename' \
+                       '    a - select all' \
+                       '    A - invert selection'
+                ltype=keybinds
+                get_cur "$y" "$@"
+                redraw "$@"
+            ;;
+            search)
+                IFS=
+                # word splitting disabled and globbing intentional
+                # shellcheck disable=2086
+                set -- $ans*
+                unset IFS
+                case $1$# in
+                    "$ans*1") set -- 'no results'
+                esac
+                ltype="search $PWD/$ans*"
+                get_cur "$y" "$@"
+                redraw "$@"
+            ;;
+            normal)
+                set -- "$hidden"*
+                get_cur "$y" "$@"
+                redraw "$@"
+            ;;
+        esac
+        set_type=
     done
 }
 
