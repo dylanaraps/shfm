@@ -677,11 +677,11 @@ main() {
             ;;
             
             \~5) # PGUP
-                [ "$y" -eq "$#" ] && continue
-                y=$((y + bottom))
-                if [ "$y" -gt "$#" ]; then
-                    y="$#"
-                    y2=$((bottom > $# ? $# : bottom))
+                [ "$y" -eq 1 ] && continue
+                y=$((y - bottom))
+                if [ "$y" -lt 1 ]; then
+                    y=1
+                    y2=1
                 fi
                 hist=2
                 get_cur "$y" "$@"
@@ -689,11 +689,11 @@ main() {
             ;;
             
             \~6) # PGDOWN
-                [ "$y" -eq 1 ] && continue
-                y=$((y - bottom))
-                if [ "$y" -lt 1 ]; then
-                    y=1
-                    y2=1
+                [ "$y" -eq "$#" ] && continue
+                y=$((y + bottom))
+                if [ "$y" -gt "$#" ]; then
+                    y="$#"
+                    y2=$((bottom > $# ? $# : bottom))
                 fi
                 hist=2
                 get_cur "$y" "$@"
