@@ -38,6 +38,15 @@ q - quit
 ! - spawn shell
 . - toggle hidden files
 ? - show help
+tab - next tab (or prev tab if shift is held)
+1-4 - move to tab 1-4
+space - select (or deselect) current item
+p - copy selected items to current folder
+v - move selected items to current folder
+x - delete
+r - bulk rename
+a - select all
+A - invert selection
 
 Also supported:
 
@@ -49,6 +58,11 @@ right arrow - open file or directory
 backspace   - up
 enter       - open file or directory
 
+home        - move to top
+end         - move to bottom
+pg up       - move up one screen
+pg down     - move down one screen
+
 
 todo
 ________________________________________________________________________________
@@ -56,7 +70,7 @@ ________________________________________________________________________________
 - [x] sanitize filenames for display.
 - [ ] print directories first (hard).
 - [x] fix buggy focus after exit from inline editor.
-- [ ] maybe file operations.
+- [x] maybe file operations.
 - [x] add / to directories.
 - [x] going up directories should center entry.
 - [x] abstract over sequences.
