@@ -191,7 +191,7 @@ status_line() {
     esc CUP "$((LINES - 1))"
 
     # esc SGR 32
-    # printf %s "$y $y2 $bottom ${selected:-empty}"
+    # printf %s "$y $y2 $bottom ${#others} ${selected:-empty}"
     # esc EL0
     # esc CUD
     # esc SGR 33
@@ -507,6 +507,8 @@ filter_inpwd() {
     IFS='/'
     cwd=
     fn=
+    inpwd=
+    notinpwd=
     set -- "$1//"
     for piece in $1; do
         if [ -z "$piece" ]; then
