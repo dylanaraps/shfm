@@ -555,16 +555,13 @@ others_op() {
                 case $1 in
                     p)
                         if [ -d "$cwd/$fn" ]; then
-                            cmd_run cp '-r' "$cwd/$fn" "$PWD"
+                            cmd_run cp '-r' "$cwd/$fn" "$2"
                         else
-                            cmd_run cp "$cwd/$fn" "$PWD"
+                            cmd_run cp "$cwd/$fn" "$2"
                         fi
                     ;;
-                    v) 
-                        cmd_run mv "$cwd/$fn" "$PWD"
-                    ;;
-                    x)
-                        cmd_run rm '-rf' "$cwd/$fn"
+                    v)
+                        cmd_run mv "$cwd/$fn" "$2"
                     ;;
                 esac
             fi
@@ -622,6 +619,10 @@ main() {
 
     trap 'term_reset'  EXIT INT
     trap 'term_resize; term_setup; y=1 y2=1; redraw "$@"' WINCH
+
+    cmd_run mkdir '-p' "${trash:=${XDG_DATA_HOME:=$HOME/.local/share}/shfm/trash}"
+    cmd_run mkdir '-p' "${XDG_CACHE_HOME:=$HOME/.cache}/shfm"
+    rename_file="$XDG_CACHE_HOME/shfm/bulk_rename"
 
     y=1 y2=1
     redraw "$@"
@@ -705,7 +706,11 @@ main() {
             ' '?)
                 [ "$ltype" = keybinds ] || [ ! -e "$cur" ] && continue
                 toggle_cur
-                term_scroll_down "$@"
+                if [ "$y" = "$#" ]; then
+                    line_print "$y" "$@"
+                else
+                    term_scroll_down "$@"
+                fi
             ;;
 
             "$tab_char"?)
@@ -724,42 +729,61 @@ main() {
                 # false positive, behavior intentional
                 # shellcheck disable=2015
                 [ -z "$ltype" ] && [ -n "$others" ] || continue
-                others_op "$key"
+                others_op "$key" "$PWD"
                 set_type=normal
             ;;
 
             x?|P2)
                 [ "$ltype" = keybinds ] && continue
-                [ -z "$selected$others" ] && key=c || yes_no "remove 's'elected 'c'ur" "$#" || :
+                del=
+                [ -z "$ltype$others" ] && [ "$PWD" = "$trash" ] && del=true
+                [ -z "$del" ] && msg="trash 's'elected 'c'ur" || msg="permanently delete 's'elected 'c'ur"
+                [ -z "$selected$others" ] && key=c || yes_no "$msg" "$#" || :
                 case $key in
                     s)
-                        yes_no 'remove selected? y/n' "$#" || continue
-                        [ -z "$ltype" ] &&  set_type=normal || set_type=search
+                        [ -z "$del" ] && msg="send selected to trash? y/n" || msg="permanently delete selected? y/n"
+                        yes_no "$msg" "$#" || continue
                         if [ -n "$selected" ]; then
                             y=1 y2=1
                             IFS='/'
                             set -f
-                            # word splitting disabled and globbing intentional
+                            # globbing disabled and word splitting intentional
                             # shellcheck disable=2086
-                            cmd_run rm '-rf' $selected
+                            if [ -z "$del" ]; then
+                                cmd_run mv $selected "$trash"
+                            else
+                                cmd_run rm '-rf' $selected
+                            fi
                             set +f
                             unset IFS
                             selected=
                         fi
-                        others_op x
+                        [ -n "$others" ] && others_op v "$trash"
                     ;;
                     c)
+                        [ -z "$del" ] && msg="send $cur to trash? y/n" || msg="permanently delete $cur? y/n"
                         # false positive, behavior intentional
                         # shellcheck disable=2015
-                        [ -e "$cur" ] && yes_no "remove $cur? y/n" "$#" || continue
-                        [ -z "$ltype" ] &&  set_type=normal || set_type=search
+                        [ -e "$cur" ] && yes_no "$msg" "$#" || continue
+                        if [ -z "$del" ]; then
+                            cmd_run mv "$cur" "$trash"
+                        else
+                            cmd_run rm '-rf' "$cur"
+                        fi
                         y=$((y == $# ? y - 1 : y))
                         y2=$((y2 == $# ? y2 - 1 : y2))
                         y=$((y == 0 ? 1 : y))
                         y2=$((y2 == 0 ? 1 : y2))
-                        cmd_run rm '-rf' "$cur"
                     ;;
+                    *) continue ;;
                 esac
+                [ -z "$ltype" ] && set_type=normal || set_type=search
+            ;;
+
+            t?)
+                switch_dir "$trash" || continue
+                set_type=normal
+                y=1 y2=1 ltype=
             ;;
 
             r?)
@@ -947,7 +971,8 @@ main() {
                        'space - select (or deselect) current item' \
                        '    p - copy selected items to current folder' \
                        '    v - move selected items to current folder' \
-                       '    x - delete' \
+                       '    x - send to trash (permanently delete if in trash)' \
+                       '    t - go to trash' \
                        '    r - bulk rename' \
                        '    a - select all' \
                        '    A - invert selection'
