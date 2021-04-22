@@ -832,12 +832,12 @@ main() {
                 case $key in
                     d)
                         prompt 'directory name: ' r "$#"
-                        [ -z "$ans" ] || [ -e "$ans" ] && continue
+                        [ -z "$ans" ] || [ -e "$ans" ] || [ "$ans" != "${ans#*/}" ] && continue
                         cmd_run mkdir "$ans"
                     ;;
                     f)
                         prompt 'file name: ' r "$#"
-                        [ -z "$ans" ] || [ -e "$ans" ] && continue
+                        [ -z "$ans" ] || [ -e "$ans" ] || [ "$ans" != "${ans#*/}" ] && continue
                         cmd_run touch "$ans"
                     ;;
                     *) continue ;;
