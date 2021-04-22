@@ -662,14 +662,17 @@ main() {
             62) esc=6 ;;
 
             k?|A2)
+                esc=0
                 term_scroll_up "$@"
             ;;
 
             j?|B2)
+                esc=0
                 term_scroll_down "$@"
             ;;
 
             l?|C2|"$esc") # ARROW RIGHT
+                esc=0
                 [ "$ltype" = keybinds ] && continue
                 if [ -d "$cur" ] && switch_dir "$cur"; then
                     set_type=normal
@@ -681,6 +684,7 @@ main() {
             ;;
 
             h?|D2|"$bs_char"?) # ARROW LEFT
+                esc=0
                 old_pwd=$PWD
 
                 case $ltype in
@@ -692,6 +696,7 @@ main() {
             ;;
 
             g?|H2) # HOME
+                esc=0
                 case $y in
                     1) continue
                 esac
@@ -701,6 +706,7 @@ main() {
             ;;
 
             G?|\~4) # END
+                esc=0
                 y=$#
                 y2=$(($# < bottom ? $# : bottom))
                 get_cur "$y" "$@"
@@ -708,6 +714,7 @@ main() {
             ;;
             
             \~5) # PGUP
+                esc=0
                 [ "$y" -eq 1 ] && continue
                 y=$((y - bottom))
                 if [ "$y" -lt 1 ]; then
@@ -720,6 +727,7 @@ main() {
             ;;
             
             \~6) # PGDOWN
+                esc=0
                 [ "$y" -eq "$#" ] && continue
                 y=$((y + bottom))
                 if [ "$y" -gt "$#" ]; then
@@ -747,6 +755,7 @@ main() {
             ;;
 
             Z2)
+                esc=0
                 prev_tab || to_tab "$((tab_num == 1 ? num_tabs : tab_num - 1))"
             ;;
 
@@ -763,6 +772,7 @@ main() {
             ;;
 
             x?|P2)
+                esc=0
                 [ "$ltype" = keybinds ] && continue
                 del=
                 [ -z "$ltype$others" ] && [ "$PWD" = "$trash" ] && del=true
