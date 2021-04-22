@@ -300,8 +300,7 @@ line_print() {
 }
 
 line_format() {
-    check_selected "$1"
-    [ -n "$is_selected" ] && printf + || printf ' '
+    check_selected "$1" && printf + || printf ' '
     file_escape "$1"
     [ -d "$1" ] && esc SGR 1 31
     printf %s "$safe"
@@ -460,12 +459,14 @@ prev_tab() {
 # }
 
 check_selected() {
+    # return code denotes whether input is selected: 0 yes, 1 no
     IFS='/'
     is_selected=
     for s in $selected; do
-        [ "$s" = "$1" ] && is_selected=true && break
+        [ "$s" = "$1" ] && unset IFS && return 0
     done
     unset IFS
+    return 1
 }
 
 add_selected() {
@@ -479,13 +480,15 @@ add_selected() {
 }
 
 toggle_cur() {
+    # return code denotes whether cur is selected after toggling: 0 yes, 1 no
     selected="/$selected"
     beg="${selected%%/$cur/*}"
     end="${selected##*/$cur/}"
-    [ -z "$beg$end" ] && selected= && return
+    [ -z "$beg$end" ] && selected= && return 1
     [ "$beg" = "$end" ] && selected="$selected$cur/" || selected="$beg/$end"
     selected="${selected#/}"
     selected="${selected%/}/"
+    [ "$beg" = "$end" ] && return 0 || return 1
 }
 
 toggle_all(){
@@ -579,6 +582,31 @@ others_op() {
 get_cur() {
     shift "$1"
     cur="$1"
+}
+
+redraw_cur_select(){
+    esc SGR 0 7
+    printf %s "$1"
+    esc SGR 0
+    printf '\r'
+}
+
+redraw_selects() {
+    esc CUP
+    i=1
+    shift "$((y > y2 ? y - y2 : 0))"
+    esc SGR 0
+    for file do
+        [ "$i" -eq "$y2" ] && esc SGR 0 7
+        check_selected "$1" && printf + || printf ' '
+        [ "$i" -eq "$y2" ] && esc SGR 0
+        printf '\r'
+        [ "$i" -eq "$bottom" ] && break
+        esc CUD
+        i=$((i + 1))
+    done
+
+    esc CUP "$((y > y2 ? y2 : y))"
 }
 
 main() {
@@ -705,9 +733,10 @@ main() {
 
             ' '?)
                 [ "$ltype" = keybinds ] || [ ! -e "$cur" ] && continue
-                toggle_cur
+                toggle_cur && new_select='+' || new_select=' '
                 if [ "$y" = "$#" ]; then
-                    line_print "$y" "$@"
+                    redraw_cur_select "$new_select"
+                    status_line "$#"
                 else
                     term_scroll_down "$@"
                 fi
@@ -818,12 +847,12 @@ main() {
                 for file; do
                     selected="$selected$file/"
                 done
-                redraw "$@"
+                redraw_selects "$@"
             ;;
 
             A?)
                 toggle_all "$@"
-                redraw "$@"
+                redraw_selects "$@"
             ;;
 
             n?)
