@@ -788,8 +788,6 @@ main() {
 
             r?)
                 [ -z "$ltype" ] || continue
-                cmd_run mkdir "${XDG_CACHE_HOME:=$HOME/.cache}/shfm"
-                rename_file="$XDG_CACHE_HOME/shfm/bulk_rename"
                 for w; do
                     printf '%s\n' "$w"
                 done > "$rename_file"
