@@ -808,7 +808,7 @@ main() {
                 old=
                 for new in $renames; do
                     [ -z "$old" ] && old="$new" && continue
-                    cmd_run mv "$old" "$new"
+                    [ -e "$new" ] || cmd_run mv "$old" "$new"
                     old=
                 done
                 unset IFS
