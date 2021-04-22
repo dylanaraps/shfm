@@ -461,7 +461,6 @@ prev_tab() {
 check_selected() {
     # return code denotes whether input is selected: 0 yes, 1 no
     IFS='/'
-    is_selected=
     for s in $selected; do
         [ "$s" = "$1" ] && unset IFS && return 0
     done
