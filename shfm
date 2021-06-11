@@ -137,7 +137,7 @@ list_print() {
     mid=$((bottom / 4 < 5 ? 1 : bottom / 4))
 
     case $# in
-        1) [ -e "$1" ] || set -- empty
+        1) [ -e "$1" ] || [ "$1" = 'no results' ] || set -- empty
     esac
 
     case $hist in
@@ -357,9 +357,11 @@ main() {
             /?)
                 prompt / r
 
-                # word splitting and globbing intentional
+                IFS=
+                # globbing intentional, word splitting is disabled.
                 # shellcheck disable=2086
                 set -- $ans*
+                unset IFS
 
                 case $1$# in
                     "$ans*1") set -- 'no results'
