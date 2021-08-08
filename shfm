@@ -281,14 +281,17 @@ main() {
     while key=$(dd ibs=1 count=1 2>/dev/null); do
         case $key${esc:=0} in
             k?|A2)
+                esc=0
                 term_scroll_up "$@"
             ;;
 
             j?|B2)
+                esc=0
                 term_scroll_down "$@"
             ;;
 
             l?|C2|"$esc") # ARROW RIGHT
+                esc=0
                 if [ -d "$cur" ] && cd -- "$cur" >/dev/null 2>&1; then
                     set -- *
                     y=1 y2=1 cur=$1 ltype=
@@ -301,6 +304,7 @@ main() {
             ;;
 
             h?|D2|"$bs_char"?) # ARROW LEFT
+                esc=0
                 old_pwd=$PWD
 
                 case $ltype in
