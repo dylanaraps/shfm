@@ -1,5 +1,8 @@
 #!/bin/sh
 
+# false-positive, behavior intentional, globbing is disabled.
+# shellcheck disable=2046
+
 esc() {
     case $1 in
         # vt100 (IL is vt102) (DECTCEM is vt520)
@@ -44,8 +47,6 @@ term_reset() {
 }
 
 term_resize() {
-    # false-positive, behavior intentional, globbing is disabled.
-    # shellcheck disable=2046
     {
         set -f
         set +f -- $(stty size)
@@ -173,6 +174,22 @@ list_print() {
     esc CUP "$((y > y2 ? y2 : y))"
 }
 
+order() {
+    dirs=""; files=""
+
+    for i in "$@"; do
+        if [ -d "$i" ]; then
+            dirs="$dirs $i"
+        else
+            files="$files $i"
+        fi
+    done
+
+    set -- "$dirs" "$files"
+
+    printf '%s' "$@"
+}
+
 redraw() {
     list_print "$@"
     status_line "$#"
@@ -266,7 +283,7 @@ main() {
     esc_c=$(printf '\033')
     bs_char=$(printf '\177')
 
-    set -- *
+    set -- *; set -- $(order "$@")
     cur=$1
 
     term_resize
@@ -290,7 +307,7 @@ main() {
 
             l?|C2|"$esc") # ARROW RIGHT
                 if [ -d "$cur" ] && cd -- "$cur" >/dev/null 2>&1; then
-                    set -- *
+                    set -- *; set -- $(order "$@")
                     y=1 y2=1 cur=$1 ltype=
                     redraw "$@"
 
@@ -308,7 +325,7 @@ main() {
                      *) ltype= ;;
                 esac
 
-                set -- *
+                set -- *; set -- $(order "$@")
                 y=1 y2=1 cur=$1 hist=1
                 redraw "$@"
             ;;
@@ -331,8 +348,8 @@ main() {
 
             .?)
                 case ${hidden:=1} in
-                    1) hidden=0; set -- .* ;;
-                    0) hidden=1; set -- *
+                    1) hidden=0; set -- .*; set -- $(order "$@") ;;
+                    0) hidden=1; set -- *; set -- $(order "$@")
                 esac
 
                 y=1 y2=1 cur=$1
@@ -350,7 +367,7 @@ main() {
                 esac
 
                 cd -- "${ans:="$0"}" >/dev/null 2>&1|| continue
-                set -- *
+                set -- *; set -- $(order "$@")
                 y=1 y2=1 cur=$1
                 redraw "$@"
             ;;
@@ -375,14 +392,14 @@ main() {
 
             -?)
                 cd -- "$OLDPWD" >/dev/null 2>&1|| continue
-                set -- *
+                set -- *; set -- $(order "$@")
                 y=1 y2=1 cur=$1
                 redraw "$@"
             ;;
 
             \~?)
                 cd || continue
-                set -- *
+                set -- *; set -- $(order "$@")
                 y=1 y2=1 cur=$1
                 redraw "$@"
             ;;
